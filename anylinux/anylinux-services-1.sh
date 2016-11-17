@@ -170,7 +170,7 @@ uname -a
 # GLS 20160924 If the kernel version is lower than 2.6.30 and if you use the options SCST Linux SAN archive it will be necessary to compile a custom kernel.
 
 function VersionKernelPassFail () {
-    ~/Downloads/orabuntu-lxc-master/anylinux/vercomp | cut -f1 -d':'
+    ~/Downloads/uekulele-master/anylinux/vercomp | cut -f1 -d':'
 }
 KernelPassFail=$(VersionKernelPassFail)
 
@@ -322,8 +322,8 @@ then
         	echo "=============================================="
         	echo ''
 
-		mkdir -p /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/facter
-		cd /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/facter
+		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/facter
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/facter
 		curl -s http://downloads.puppetlabs.com/facter/facter-2.4.4.tar.gz | sudo tar xz; sudo ruby facter*/install.rb
 
 		echo ''
@@ -356,11 +356,11 @@ then
 
 			sleep 5
 
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
+			~/Downloads/uekulele-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
+			~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
+			~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
+			~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
+			~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
 
  			echo ''
 			echo "=============================================="
@@ -375,11 +375,11 @@ then
 			echo "=============================================="
 			echo ''
 
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
-			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
+			~/Downloads/uekulele-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
+			~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
+			~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
+			~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
+			~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
 
 			echo ''
 			echo "=============================================="
@@ -486,11 +486,11 @@ then
 			echo "=============================================="
 			echo ''
 
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-2.sh $MajorRelease $PointRelease $Domain1
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-3.sh $MajorRelease $PointRelease
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-5.sh $MajorRelease $PointRelease
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-2.sh $MajorRelease $PointRelease $Domain1
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-3.sh $MajorRelease $PointRelease
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-5.sh $MajorRelease $PointRelease
 			
 			echo ''
 			echo "=============================================="
@@ -506,11 +506,11 @@ then
 			echo "=============================================="
 			echo ''
 
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-2.sh $MajorRelease $PointRelease $Domain1
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-3.sh $MajorRelease $PointRelease
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
-			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-5.sh $MajorRelease $PointRelease
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-2.sh $MajorRelease $PointRelease $Domain1
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-3.sh $MajorRelease $PointRelease
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-5.sh $MajorRelease $PointRelease
 			
 			echo ''
 			echo "=============================================="

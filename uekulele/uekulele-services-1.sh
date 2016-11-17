@@ -74,11 +74,11 @@ then
 		echo ''
 
 		sudo yum -y install wget tar gzip
-		mkdir -p /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/epel
-		cd /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/epel
+		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/epel
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/epel
 		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 		sudo rpm -ivh epel-release-latest-7.noarch.rpm 
-		cd /home/ubuntu/Downloads/orabuntu-lxc-master
+		cd /home/ubuntu/Downloads/uekulele-master
 		sudo yum -y install debootstrap perl libvirt
 		sudo yum -y install lxc libcap-devel libcgroup busybox wget bridge-utils
 
@@ -193,11 +193,11 @@ then
 		sleep 5
 
 		sudo yum -y install rpm-build wget openssl-devel gcc make docbook2X asciidoc xmlto docbook automake graphviz
-		mkdir -p /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc
-		cd /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc
+		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
 		wget https://linuxcontainers.org/downloads/lxc/lxc-2.0.5.tar.gz
-		mkdir -p /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-		cp -p lxc-2.0.5.tar.gz /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc/rpmbuild/SOURCES/.
+		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+		cp -p lxc-2.0.5.tar.gz /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/SOURCES/.
 
 		echo ''
 		echo "=============================================="
@@ -217,10 +217,10 @@ then
 		sleep 5
 
 		tar -zxvf lxc-2.0.5.tar.gz
-		cp -p lxc-2.0.5/lxc.spec ~/Downloads/orabuntu-lxc-master/uekulele/lxc/.
-		cd /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc
+		cp -p lxc-2.0.5/lxc.spec ~/Downloads/uekulele-master/uekulele/lxc/.
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
 		sudo sh -c "echo '%_unpackaged_files_terminate_build 0' >> /etc/rpm/macros"
-		rpmbuild --define '_topdir /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc/rpmbuild' -ba lxc.spec
+		rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild' -ba lxc.spec
 
 		echo ''
 		echo "=============================================="
@@ -237,7 +237,7 @@ then
 		echo "=============================================="
 		echo ''
 
-		cd ~/Downloads/orabuntu-lxc-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+		cd ~/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
 		sudo yum -y localinstall lxc*
 
 		echo ''
@@ -541,8 +541,8 @@ then
 	sleep 5
 
 	sudo yum -y install wget tar gzip
-	mkdir -p /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/epel
-	cd /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/epel
+	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/epel
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/epel
 	wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 	sudo rpm -ivh epel-release-latest-7.noarch.rpm 
 	sudo yum -y install debootstrap perl libvirt
@@ -631,11 +631,11 @@ then
 	sleep 5
 
 	sudo yum -y install rpm-build wget openssl-devel gcc make docbook2X asciidoc xmlto docbook automake graphviz
-	mkdir -p /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc
-	cd /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc
+	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
 	wget https://linuxcontainers.org/downloads/lxc/lxc-2.0.5.tar.gz
-	mkdir -p /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-	cp -p lxc-2.0.5.tar.gz /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc/rpmbuild/SOURCES/.
+	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+	cp -p lxc-2.0.5.tar.gz /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/SOURCES/.
 
 	echo ''
 	echo "=============================================="
@@ -655,10 +655,10 @@ then
 	sleep 5
 
 	tar -zxvf lxc-2.0.5.tar.gz
-	cp -p lxc-2.0.5/lxc.spec ~/Downloads/orabuntu-lxc-master/uekulele/lxc/.
-	cd /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc
+	cp -p lxc-2.0.5/lxc.spec ~/Downloads/uekulele-master/uekulele/lxc/.
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
 	sudo sh -c "echo '%_unpackaged_files_terminate_build 0' >> /etc/rpm/macros"
-	rpmbuild --define '_topdir /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/lxc/rpmbuild' -ba lxc.spec
+	rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild' -ba lxc.spec
 
 	echo ''
 	echo "=============================================="
@@ -675,7 +675,7 @@ then
 	echo "=============================================="
 	echo ''
 
-	cd ~/Downloads/orabuntu-lxc-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+	cd ~/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
 	sudo yum -y localinstall lxc*
 
 	echo ''
@@ -754,11 +754,11 @@ then
 	sleep 5
 
 	sudo yum -y install rpm-build wget openssl-devel gcc make
-	mkdir -p /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/openvswitch
-	cd /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/openvswitch
+	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
 	wget http://openvswitch.org/releases/openvswitch-2.5.1.tar.gz
-	mkdir -p ~/Downloads/orabuntu-lxc-master/uekulele/openvswitch/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-	cp -p openvswitch-2.5.1.tar.gz /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/openvswitch/rpmbuild/SOURCES/.
+	mkdir -p ~/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+	cp -p openvswitch-2.5.1.tar.gz /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/SOURCES/.
 
 	echo ''
 	echo "=============================================="
@@ -778,9 +778,9 @@ then
 	sleep 5
 
 	tar -zxvf openvswitch-2.5.1.tar.gz
-	cp -p openvswitch-2.5.1/rhel/*.spec ~/Downloads/orabuntu-lxc-master/uekulele/openvswitch/.
-	cd /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/openvswitch
-	rpmbuild --define '_topdir /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/openvswitch/rpmbuild' -ba openvswitch.spec
+	cp -p openvswitch-2.5.1/rhel/*.spec ~/Downloads/uekulele-master/uekulele/openvswitch/.
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
+	rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild' -ba openvswitch.spec
 
 	echo ''
 	echo "=============================================="
@@ -816,7 +816,7 @@ then
 
 	sleep 5
 
-	cd ~/Downloads/orabuntu-lxc-master/uekulele/openvswitch/rpmbuild/RPMS/x86_64
+	cd ~/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/RPMS/x86_64
 #	sudo yum -y localinstall openvswitch-2.5.1-1.x86_64.rpm 
 	sudo yum -y localinstall openvswitch*
 
@@ -887,7 +887,7 @@ echo ''
 
 sleep 5
 
-cd /home/ubuntu/Downloads/orabuntu-lxc-master
+cd /home/ubuntu/Downloads/uekulele-master
 
 sudo yum -y install curl ruby tar which	
 sudo yum -y install wget tar gunzip
@@ -950,7 +950,7 @@ echo "Extracting backup scripts...                  "
 echo "==============================================" 
 echo ''
 
-sudo tar -vP --extract --file=/home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/archives/ubuntu-host.tar /etc/orabuntu-lxc-scripts/ubuntu-host-backup.sh --touch
+sudo tar -vP --extract --file=/home/ubuntu/Downloads/uekulele-master/uekulele/archives/ubuntu-host.tar /etc/orabuntu-lxc-scripts/ubuntu-host-backup.sh --touch
 echo ''
 sudo /etc/orabuntu-lxc-scripts/ubuntu-host-backup.sh
 
@@ -1085,7 +1085,7 @@ echo "Unpacking G1 host files for Oracle Linux...   "
 echo "=============================================="
 echo ''
 
-sudo tar -P -xvf /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/archives/ubuntu-host.tar   --touch
+sudo tar -P -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/ubuntu-host.tar   --touch
 
 echo ''
 echo "=============================================="
@@ -1102,7 +1102,7 @@ echo "Unpacking G2 host files for Oracle Linux...   "
 echo "=============================================="
 echo ''
 
-sudo tar -P -xvf /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/archives/dns-dhcp-host.tar --touch
+sudo tar -P -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/dns-dhcp-host.tar --touch
 
 echo ''
 echo "=============================================="
@@ -1297,7 +1297,7 @@ echo "Unpacking LXC nameserver custom files...      "
 echo "=============================================="
 echo ''
 	
-sudo tar -P -xvf /home/ubuntu/Downloads/orabuntu-lxc-master/uekulele/archives/dns-dhcp-cont.tar --touch
+sudo tar -P -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/dns-dhcp-cont.tar --touch
 
 echo ''
 echo "=============================================="

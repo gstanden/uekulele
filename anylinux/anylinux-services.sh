@@ -163,7 +163,7 @@ sleep 5
 
 clear
 
-/home/ubuntu/Downloads/orabuntu-lxc-master/anylinux/anylinux-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation $NumCon
+/home/ubuntu/Downloads/uekulele-master/anylinux/anylinux-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation $NumCon
 
 exit
 
