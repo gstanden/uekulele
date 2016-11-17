@@ -74,10 +74,11 @@ then
 		echo ''
 
 		sudo yum -y install wget tar gzip
-		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/epel
-		cd /home/ubuntu/Downloads/uekulele-master/uekulele/epel
-		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-		sudo rpm -ivh epel-release-latest-7.noarch.rpm 
+ 		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/epel
+  		cd /home/ubuntu/Downloads/uekulele-master/uekulele/epel
+  		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+  		sudo rpm -ivh epel-release-latest-7.noarch.rpm 
+ 		sudo yum --assumeno update
 		cd /home/ubuntu/Downloads/uekulele-master
 		sudo yum -y install debootstrap perl libvirt
 		sudo yum -y install lxc libcap-devel libcgroup busybox wget bridge-utils
@@ -893,7 +894,7 @@ sudo yum -y install curl ruby tar which
 sudo yum -y install wget tar gunzip
 sudo yum -y install libcap-devel libcgroup wget bridge-utils graphviz
 sudo yum -y install rpm-build wget openssl-devel
-sudo yum -y install bind-utils net-tools openssh-server uuid
+sudo yum -y install bind-utils net-tools wireless-tools openssh-server uuid
 sudo yum -y install rpm ntp iotop iptables gawk
 
 echo ''
@@ -1408,6 +1409,7 @@ clear
 echo ''
 echo "=============================================="
 echo "Activating NetworkManager dnsmasq service ... "
+echo "This has a 60 second timeout so be patient... "
 echo "=============================================="
 echo ''
 
@@ -1416,11 +1418,31 @@ echo ''
 sudo cat /etc/resolv.conf
 sudo sed -i '/plugins=ifcfg-rh/a dns=dnsmasq' /etc/NetworkManager/NetworkManager.conf
 echo ''
+
 sudo service NetworkManager restart
 
-sleep 10
+function CheckResolvReady {
+sudo cat /etc/resolv.conf | grep -c 'nameserver 127\.0\.0\.1'
+}
+ResolvReady=$(CheckResolvReady)
+NumResolvReadyTries=0
+while [ $ResolvReady -ne 1 ] && [ $NumResolvReadyTries -lt 60 ]
+do
+ResolvReady=$(CheckResolvReady)
+((NumResolvReadyTries=NumResolvReadyTries+1))
+sleep 1
+done
 
+if [ $ResolvReady -eq 1 ]
+then
 sudo sh -c "echo 'search $Domain1 $Domain2' >> /etc/resolv.conf"
+else
+echo "=============================================="
+echo "NetworkManager didn't set nameserver 127.0.0.1"
+echo "which is the setting required for NM dnsmasq. "
+echo "=============================================="
+fi
+
 echo ''
 sudo cat /etc/resolv.conf
 
@@ -1822,6 +1844,35 @@ echo "=============================================="
 echo "Created the crt_links.sh script.              "
 echo "=============================================="
 echo ''
+
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
+echo "Set selinux to permissive mode & set rules... "
+echo "=============================================="
+echo ''
+
+sudo setenforce 0
+sudo getenforce
+echo ''
+sudo ausearch -c 'bash' --raw | audit2allow -M my-bash
+sudo semodule -i my-bash.pp
+sudo ausearch -c 'dhclient' --raw | audit2allow -M my-dhclient
+sudo semodule -i my-dhclient.pp
+sudo ausearch -c 'passwd' --raw | audit2allow -M my-passwd
+sudo semodule -i my-passwd.pp
+sudo ausearch -c 'sedispatch' --raw | audit2allow -M my-sedispatch
+sudo semodule -i my-sedispatch.pp
+sudo ausearch -c 'systemd-sysctl' --raw | audit2allow -M my-systemdsysctl
+sudo semodule -i my-systemdsysctl.pp
+
+echo ''
+echo "=============================================="
+echo "Set selinux to permissive & set rules.        "
+echo "=============================================="
 
 sleep 5
 

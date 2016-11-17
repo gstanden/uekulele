@@ -53,7 +53,9 @@ echo "Extracting oracle-specific files to container."
 echo "=============================================="
 echo ''
 
+# sudo cp -p /var/lib/lxc/oel$OracleRelease/rootfs/etc/security/limits.conf /var/lib/lxc/oel$OracleRelease/rootfs/etc/security/limits.conf.original.uekulele.bak
 sudo tar -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/lxc-oracle-files.tar -C /var/lib/lxc/oel$OracleRelease --touch
+# sudo cp -p /var/lib/lxc/oel$OracleRelease/rootfs/etc/security/limits.conf.original.uekulele.bak /var/lib/lxc/oel$OracleRelease/rootfs/etc/security/limits.conf
 
 sudo chown root:root /var/lib/lxc/oel$OracleRelease/rootfs/root/hugepages_setting.sh
 sudo chmod 755 /var/lib/lxc/oel$OracleRelease/rootfs/root/hugepages_setting.sh
