@@ -78,7 +78,7 @@ then
   		cd /home/ubuntu/Downloads/uekulele-master/uekulele/epel
   		wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
   		sudo rpm -ivh epel-release-latest-7.noarch.rpm 
- 		sudo yum --assumeno update
+ 		sudo yum provides lxc | sed '/^\s*$/d' | grep Repo | sort -u
 		cd /home/ubuntu/Downloads/uekulele-master
 		sudo yum -y install debootstrap perl libvirt
 		sudo yum -y install lxc libcap-devel libcgroup busybox wget bridge-utils
@@ -743,9 +743,11 @@ sleep 5
 
 clear
 
+BuildIterations=1
 which ovs-vsctl > /dev/null 2>&1
-if [ $? -ne 0 ]
-then
+Built=$?
+while [ $Built -ne 0 ] && [ $BuildIterations -le 2 ]
+do
 	echo ''
 	echo "=============================================="
 	echo "Install required packages and prepare...      "
@@ -818,7 +820,6 @@ then
 	sleep 5
 
 	cd ~/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/RPMS/x86_64
-#	sudo yum -y localinstall openvswitch-2.5.1-1.x86_64.rpm 
 	sudo yum -y localinstall openvswitch*
 
 	echo ''
@@ -865,7 +866,10 @@ then
 	echo "Test OpenvSwitch complete.                    "
 	echo "=============================================="
 	echo ''
-fi
+	which ovs-vsctl > /dev/null 2>&1
+	Built=$?
+	BuildIterations=$((BuildIterations+1))
+done
 
 sleep 5
 
@@ -891,7 +895,7 @@ sleep 5
 cd /home/ubuntu/Downloads/uekulele-master
 
 sudo yum -y install curl ruby tar which	
-sudo yum -y install wget tar gunzip
+sudo yum -y install wget tar gzip
 sudo yum -y install libcap-devel libcgroup wget bridge-utils graphviz
 sudo yum -y install rpm-build wget openssl-devel
 sudo yum -y install bind-utils net-tools wireless-tools openssh-server uuid
@@ -920,7 +924,7 @@ RedHatVersion=$(GetRedHatVersion)
 if [ $RedHatVersion = '7' ]
 then
 function CheckPackageInstalled {
-echo 'wget gzip debootstrap perl libvirt bind-utils net-tools openssh-server uuid rpm yum ntp iotop which ruby curl tar lxc-2 lxc-libs lxc-debug lxc-devel libcap-devel libcgroup busybox bridge-utils rpm-build openssl-devel gcc make docbook2X asciidoc xmlto docbook automake graphviz iptables gawk libvirt-daemon-driver-lxc openvswitch-2 openvswitch-debug facter'
+echo 'asciidoc automake bind-utils bridge-utils busybox curl debootstrap docbook docbook2X facter gawk gcc graphviz gzip iotop iptables libcap-devel libcgroup libvirt libvirt-daemon-driver-lxc lxc-2 lxc-debug lxc-devel lxc-libs make net-tools ntp openssh-server openssl-devel openvswitch-2 openvswitch-debug perl rpm rpm-build ruby tar uuid wget which xmlto yum'
 }
 fi
 
@@ -1431,6 +1435,7 @@ do
 ResolvReady=$(CheckResolvReady)
 ((NumResolvReadyTries=NumResolvReadyTries+1))
 sleep 1
+echo 'NumResolvReadyTries = '$NumResolvReadyTries
 done
 
 if [ $ResolvReady -eq 1 ]
