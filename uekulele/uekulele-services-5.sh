@@ -80,7 +80,7 @@ echo "Create Priv/ASM OpenvSwitch Onboot Services..."
 echo "=============================================="
 echo ''
 
-SwitchList='sw2 sw3 sw4 sw5 sw6 sw7 sw8 sw9'
+SwitchList='sw1 sx1 sw2 sw3 sw4 sw5 sw6 sw7 sw8 sw9'
 for k in $SwitchList
 do
         if [ ! -f /etc/systemd/system/$k.service ]

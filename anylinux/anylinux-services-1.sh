@@ -342,21 +342,19 @@ then
 	facter virtual
 	}
 	Facter=$(GetFacter)
+			
+	sleep 5
+
+	clear
 		if [ $Facter != 'physical' ]
 		then
-			sleep 5
-
-			clear
-
  			echo ''
 			echo "=============================================="
-			echo "Uekulele Oracle LXC Automation running...     "
+			echo "Uekulele $LinuxFlavor LXC Automation on VM... "
 			echo "=============================================="
 			echo ''
 
 			sleep 5
-
-			clear
 
 			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
 			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
@@ -366,13 +364,27 @@ then
 
  			echo ''
 			echo "=============================================="
-			echo "Uekulele Oracle LXC Automation complete.      "
+			echo "Uekulele $LinuxFlavor LXC Automation complete."
+			echo "=============================================="
+
+			sleep 5
+ 		else 
+			echo ''
+			echo "=============================================="
+			echo "Uekulele $LinuxFlavor Automation on phys host."
 			echo "=============================================="
 			echo ''
- 		else 
- 		echo "============================================"
- 		echo "Installation on VM's is not yet supported.  "
- 		echo "============================================"
+
+			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
+			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
+			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
+			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
+			~/Downloads/orabuntu-lxc-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
+
+			echo ''
+			echo "=============================================="
+			echo "Uekulele $LinuxFlavor Automation complete.    "
+			echo "=============================================="
  		fi
 	fi
 	if [ $LinuxFlavor = 'Ubuntu' ]
@@ -457,16 +469,20 @@ then
 	echo "Check if host is physical or virtual...       "
 	echo "=============================================="
 	
+	sudo apt-get install facter
 	function GetFacter {
 	facter virtual
 	}
 	Facter=$(GetFacter)
 			
+	sleep 5
+
+	clear
 		if [ $Facter != 'physical' ]
 		then
  			echo ''
 			echo "=============================================="
-			echo "Orabuntu Oracle LXC Automation running...     "
+			echo "Uekulele $LinuxFlavor Automation on VM...     "
 			echo "=============================================="
 			echo ''
 
@@ -475,16 +491,33 @@ then
 			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-3.sh $MajorRelease $PointRelease
 			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
 			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-5.sh $MajorRelease $PointRelease
-	
+			
 			echo ''
 			echo "=============================================="
-			echo "Orabuntu Oracle LXC Automation complete.      "
+			echo "Uekulele $LinuxFlavor Automation complete.    "
 			echo "=============================================="
 			echo ''
+
+			sleep 5
 		else
-		echo "============================================"
-		echo "Installtion on VM's is not yet supported.   "
-		echo "============================================"
+			echo ''
+			echo "=============================================="
+			echo "Uekulele $LinuxFlavor Automation on phys host."
+			echo "=============================================="
+			echo ''
+
+			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
+			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-2.sh $MajorRelease $PointRelease $Domain1
+			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-3.sh $MajorRelease $PointRelease
+			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
+			~/Downloads/orabuntu-lxc-master/orabuntu/orabuntu-services-5.sh $MajorRelease $PointRelease
+			
+			echo ''
+			echo "=============================================="
+			echo "Uekulele $LinuxFlavor Automation complete.    "
+			echo "=============================================="
+
+			sleep 5
 		fi
 
 	fi #LinuxFlavor

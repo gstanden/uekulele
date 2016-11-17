@@ -1544,52 +1544,6 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Create OpenvSwitch Onboot Services...         "
-echo "=============================================="
-echo ''
-
-for k in $SwitchList
-do
-	sudo sh -c "echo '[Unit]'                                                > /etc/systemd/system/$k.service"
-	sudo sh -c "echo 'Description=$k Service'                               >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo 'After=network.target'                                 >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo ''                                                     >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo '[Service]'                                            >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo 'Type=oneshot'                                         >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo 'User=root'                                            >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo 'RemainAfterExit=yes'                                  >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo 'ExecStart=/etc/network/openvswitch/crt_ovs_$k.sh'     >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo ''                                                     >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo '[Install]'                                            >> /etc/systemd/system/$k.service"
-	sudo sh -c "echo 'WantedBy=multi-user.target'                           >> /etc/systemd/system/$k.service"
-	sudo chmod 644 /etc/systemd/system/$k.service
-	sudo systemctl enable $k.service
-	echo ''
-done
-
-sudo systemctl daemon-reload
-
-for k in $SwitchList
-do
-	sudo service $k start
-	sudo service $k status
-
-	sleep 5
-
-	clear
-done
- 
-echo "=============================================="
-echo s"OpenvSwitch Onboot Services Created.          "
-echo "=============================================="
-echo ''
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
 echo "Verify iptables rules are set correctly...    "
 echo "=============================================="
 echo ''
