@@ -72,6 +72,7 @@ sudo chmod 644 /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
 sudo sed -i "s/HOSTNAME=ContainerName/HOSTNAME=oel$OracleRelease/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/sysconfig/network
 sudo sed -i "s/HostName/oel$OracleRelease/" /var/lib/lxc/oel$OracleRelease/rootfs/etc/sysconfig/network-scripts/ifcfg-eth0
 sudo sed -i "s/HostName/oel$OracleRelease/" /var/lib/lxc/oel$OracleRelease/rootfs/etc/sysconfig/network-scripts/ifcfg-eth1
+sudo rm /var/lib/lxc/oel$OracleRelease/rootfs/etc/sysconfig/network-scripts/ifcfg-eth1
 
 echo ''
 echo "=============================================="

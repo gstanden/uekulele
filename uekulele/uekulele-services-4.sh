@@ -114,11 +114,6 @@ if [ $AddPrivateNetworks = 'y' ] || [ $AddPrivateNetworks = 'Y' ]
 then
 	sudo bash -c "cat /var/lib/lxc/oel$OR/config.oracle /var/lib/lxc/oel$OR/config.asm.flex.cluster > /var/lib/lxc/oel$OR/config"
 	sudo sed -i "s/ContainerName/oel$OR/g" /var/lib/lxc/oel$OR/config
-	OracleNonPublicNetworks='sw2 sw3 sw4 sw5 sw6 sw7 sw8 sw9'
-	for j in $OracleNonPublicNetworks
-	do
-	sudo sed -i "/$j/s/^# //g" /etc/network/if-up.d/orabuntu-lxc-net
-	done
 fi
 
 if [ $AddPrivateNetworks = 'n' ] || [ $AddPrivateNetworks = 'N' ]

@@ -47,35 +47,6 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Make sure all openvswitch interfaces are up   "
-echo "=============================================="
-echo ''
-
-sudo /etc/network/openvswitch/crt_ovs_sw2.sh >/dev/null 2>&1
-sudo /etc/network/openvswitch/crt_ovs_sw3.sh >/dev/null 2>&1
-sudo /etc/network/openvswitch/crt_ovs_sw4.sh >/dev/null 2>&1
-sudo /etc/network/openvswitch/crt_ovs_sw5.sh >/dev/null 2>&1
-sudo /etc/network/openvswitch/crt_ovs_sw6.sh >/dev/null 2>&1
-sudo /etc/network/openvswitch/crt_ovs_sw7.sh >/dev/null 2>&1
-sudo /etc/network/openvswitch/crt_ovs_sw6.sh >/dev/null 2>&1
-sudo /etc/network/openvswitch/crt_ovs_sw8.sh >/dev/null 2>&1
- sudo /etc/network/openvswitch/crt_ovs_sw9.sh >/dev/null 2>&1
-
-sleep 2
-
-ifconfig | grep -v 'ns' | egrep -A1 'sw|sx'
-
-echo ''
-echo "=============================================="
-echo "All openvswitch interfaces are up.            "
-echo "=============================================="
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
 echo "Create Priv/ASM OpenvSwitch Onboot Services..."
 echo "=============================================="
 echo ''
@@ -87,7 +58,20 @@ do
         then
                 sudo sh -c "echo '[Unit]'						 > /etc/systemd/system/$k.service"
                 sudo sh -c "echo 'Description=$k Service'				>> /etc/systemd/system/$k.service"
-                sudo sh -c "echo 'After=network.target'					>> /etc/systemd/system/$k.service"
+		if [ $k = 'sw1' ]
+		then
+			sudo sh -c "echo 'Wants=network-online.target'			>> /etc/systemd/system/$k.service"
+			sudo sh -c "echo 'After=network-online.target'			>> /etc/systemd/system/$k.service"
+		fi
+		if [ $k = 'sx1' ]
+		then
+			sudo sh -c "echo 'Wants=network-online.target'			>> /etc/systemd/system/$k.service"
+			sudo sh -c "echo 'After=network-online.target sw1.service'	>> /etc/systemd/system/$k.service"
+		fi
+		if [ $k != 'sw1' ] && [ $k != 'sx1' ]
+		then
+                	sudo sh -c "echo 'After=network-online.target'			>> /etc/systemd/system/$k.service"
+		fi
                 sudo sh -c "echo ''							>> /etc/systemd/system/$k.service"
                 sudo sh -c "echo '[Service]'						>> /etc/systemd/system/$k.service"
                 sudo sh -c "echo 'Type=oneshot'						>> /etc/systemd/system/$k.service"
@@ -97,8 +81,6 @@ do
                 sudo sh -c "echo ''							>> /etc/systemd/system/$k.service"
                 sudo sh -c "echo '[Install]'						>> /etc/systemd/system/$k.service"
                 sudo sh -c "echo 'WantedBy=multi-user.target'				>> /etc/systemd/system/$k.service"
-                sudo chmod 644 /etc/systemd/system/$k.service
-                sudo systemctl enable $k.service
         fi
 done
 
@@ -119,6 +101,8 @@ do
 	echo "=============================================="
 	echo ''
 
+        sudo chmod 644 /etc/systemd/system/$k.service
+        sudo systemctl enable $k.service
 	sudo service $k start
 	sudo service $k status
 
@@ -255,6 +239,51 @@ echo "=============================================="
 echo ''
 
 sleep 15
+
+clear
+
+echo ''
+echo "=============================================="
+echo "Set selinux to permissive mode & set rules... "
+echo "=============================================="
+echo ''
+
+function GetFacter {
+facter virtual
+}
+Facter=$(GetFacter)
+if [ $Facter = 'physical' ]
+then
+	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/selinux
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/selinux
+	sudo setenforce 0
+	sudo getenforce
+	sudo sed -i '/\([^T][^Y][^P][^E]\)\|\([^#]\)/ s/enforcing/permissive/' /etc/sysconfig/selinux
+	echo ''
+	sudo ausearch -c 'lxcattach' --raw | audit2allow -M my-lxcattach
+	sudo semodule -i my-lxcattach.pp
+	sudo ausearch -c 'dhclient' --raw | audit2allow -M my-dhclient
+	sudo semodule -i my-dhclient.pp
+	sudo ausearch -c 'passwd' --raw | audit2allow -M my-passwd
+	sudo semodule -i my-passwd.pp
+	sudo ausearch -c 'sedispatch' --raw | audit2allow -M my-sedispatch
+	sudo semodule -i my-sedispatch.pp
+	sudo ausearch -c 'systemd-sysctl' --raw | audit2allow -M my-systemdsysctl
+	sudo semodule -i my-systemdsysctl.pp
+	sudo ausearch -c 'ovs-vsctl' --raw | audit2allow -M my-ovsvsctl
+	sudo semodule -i my-ovsvsctl.pp
+	sudo ausearch -c 'sshd' --raw | audit2allow -M my-sshd
+	sudo semodule -i my-sshd.pp
+	sudo ausearch -c 'gdm-session-wor' --raw | audit2allow -M my-gdmsessionwor
+	sudo semodule -i my-gdmsessionwor.pp
+fi
+
+echo ''
+echo "=============================================="
+echo "Set selinux to permissive & set rules.        "
+echo "=============================================="
+
+sleep 5
 
 clear
 

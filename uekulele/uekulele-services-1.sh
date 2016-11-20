@@ -352,7 +352,7 @@ then
 		done
 	done
 
-	sudo iptables -S
+	sudo iptables -S | egrep 'sx1|sw1'
 
 	echo ''
 	echo "=============================================="
@@ -743,10 +743,9 @@ sleep 5
 
 clear
 
-BuildIterations=1
 which ovs-vsctl > /dev/null 2>&1
 Built=$?
-while [ $Built -ne 0 ] && [ $BuildIterations -le 2 ]
+while [ $Built -ne 0 ]
 do
 	echo ''
 	echo "=============================================="
@@ -868,7 +867,6 @@ do
 	echo ''
 	which ovs-vsctl > /dev/null 2>&1
 	Built=$?
-	BuildIterations=$((BuildIterations+1))
 done
 
 sleep 5
@@ -1109,6 +1107,12 @@ echo ''
 
 sudo tar -P -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/dns-dhcp-host.tar --touch
 
+# GLS 20161118 This section for any tweaks to the unpacked files from dns-dhcp-host.tar archive.
+sudo sed -i '/add-port/s/add-port/--may-exist add-port/' /etc/network/if-up.d/openvswitch/nsa-pub-ifup-sw1
+sudo sed -i '/add-port/s/add-port/--may-exist add-port/' /etc/network/if-up.d/openvswitch/nsa-pub-ifup-sx1
+sudo rm /etc/network/if-up.d/orabuntu-lxc-net
+
+
 echo ''
 echo "=============================================="
 echo "G2 host files for Oracle Linux unpacked.      "
@@ -1208,18 +1212,18 @@ sudo sysctl -p /etc/sysctl.d/60-oracle.conf
 
 if [ ! -f /etc/systemd/system/60-oracle.service ]
 then
-sudo sh -c "echo '[Unit]'                                    > /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo 'Description=60-oracle Service'            >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo 'After=network.target'                     >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo ''                                         >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo '[Service]'                                >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo 'Type=oneshot'                             >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo 'User=root'                                >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo 'RemainAfterExit=yes'                      >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo 'ExecStart=/etc/sysctl.d/60-oracle.conf'   >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo ''                                         >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo '[Install]'                                >> /etc/systemd/system/60-oracle.service"
-sudo sh -c "echo 'WantedBy=multi-user.target'               >> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo '[Unit]'                                    			 > /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo 'Description=60-oracle Service'            			>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo 'After=network.target'                     			>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo ''                                         			>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo '[Service]'                                			>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo 'Type=oneshot'                             			>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo 'User=root'                                			>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo 'RemainAfterExit=yes'                      			>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo 'ExecStart=/usr/sbin/sysctl -p /etc/sysctl.d/60-oracle.conf'	>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo ''                                         			>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo '[Install]'                                			>> /etc/systemd/system/60-oracle.service"
+sudo sh -c "echo 'WantedBy=multi-user.target'               			>> /etc/systemd/system/60-oracle.service"
 
 sudo chmod 644 /etc/systemd/system/60-oracle.service
 echo ''
@@ -1351,8 +1355,6 @@ then
 	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/config
 	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/etc/hostname
 	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/etc/hosts
-	sudo sed -i '/strt/s/^# //' /etc/network/if-up.d/orabuntu-lxc-net
-	sudo sed -i "/nsa/s/nsa/$NameServer/g" /etc/network/if-up.d/orabuntu-lxc-net
 	sudo sed -i "/nsa/s/nsa/$NameServer/g" /etc/network/openvswitch/strt_nsa.sh
 	sudo mv /var/lib/lxc/nsa /var/lib/lxc/$NameServer
 	sudo mv /etc/network/if-up.d/openvswitch/nsa-pub-ifup-sw1 /etc/network/if-up.d/openvswitch/$NameServer-pub-ifup-sw1
@@ -1505,13 +1507,15 @@ echo ''
 
 sudo sh -c "echo '[Unit]'             	         				 > /etc/systemd/system/$NameServer.service"
 sudo sh -c "echo 'Description=$NameServer Service'  				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'After=network.target'             				>> /etc/systemd/system/$NameServer.service"
+sudo sh -c "echo 'Wants=network-online.target sw1.service sx1.service'		>> /etc/systemd/system/$NameServer.service"
+sudo sh -c "echo 'After=network-online.target sw1.service sx1.service'		>> /etc/systemd/system/$NameServer.service"
 sudo sh -c "echo ''                                 				>> /etc/systemd/system/$NameServer.service"
 sudo sh -c "echo '[Service]'                        				>> /etc/systemd/system/$NameServer.service"
 sudo sh -c "echo 'Type=oneshot'                     				>> /etc/systemd/system/$NameServer.service"
 sudo sh -c "echo 'User=root'                        				>> /etc/systemd/system/$NameServer.service"
 sudo sh -c "echo 'RemainAfterExit=yes'              				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'ExecStart=/etc/network/openvswitch/strt_$NameServer.sh'	>> /etc/systemd/system/$NameServer.service"
+sudo sh -c "echo 'ExecStart=/etc/network/openvswitch/strt_$NameServer.sh start'	>> /etc/systemd/system/$NameServer.service"
+sudo sh -c "echo 'ExecStop=/etc/network/openvswitch/strt_$NameServer.sh stop'	>> /etc/systemd/system/$NameServer.service"
 sudo sh -c "echo ''                                 				>> /etc/systemd/system/$NameServer.service"
 sudo sh -c "echo '[Install]'                        				>> /etc/systemd/system/$NameServer.service"
 sudo sh -c "echo 'WantedBy=multi-user.target'       				>> /etc/systemd/system/$NameServer.service"
@@ -1558,7 +1562,6 @@ sudo /etc/network/openvswitch/crt_ovs_sx1.sh >/dev/null 2>&1
 echo ''
 sleep 3
 ifconfig sx1
-sudo sed -i '/sx1/s/^# //g' /etc/network/if-up.d/orabuntu-lxc-net
 
 echo "=============================================="
 echo "OpenvSwitch sx1 started.                      "
@@ -1577,7 +1580,7 @@ echo ''
 
 sleep 5
 
-sudo iptables -S
+sudo iptables -S | egrep 'sw1|sx1'
 
 echo ''
 echo "=============================================="
@@ -1821,7 +1824,6 @@ sudo sh -c "echo ' ln -sf /etc/NetworkManager/dnsmasq.d/local .' 					   >> /etc
 sudo sh -c "echo ' ln -sf /etc/orabuntu-lxc-scripts/stop_containers.sh .' 				   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/orabuntu-lxc-scripts/start_containers.sh .' 				   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch .' 							   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
-sudo sh -c "echo ' ln -sf /etc/network/if-up.d/orabuntu-lxc-net .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch/crt_ovs_sw1.sh .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch/crt_ovs_sw2.sh .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch/crt_ovs_sw3.sh .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
@@ -1849,35 +1851,6 @@ echo "=============================================="
 echo "Created the crt_links.sh script.              "
 echo "=============================================="
 echo ''
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
-echo "Set selinux to permissive mode & set rules... "
-echo "=============================================="
-echo ''
-
-sudo setenforce 0
-sudo getenforce
-echo ''
-sudo ausearch -c 'bash' --raw | audit2allow -M my-bash
-sudo semodule -i my-bash.pp
-sudo ausearch -c 'dhclient' --raw | audit2allow -M my-dhclient
-sudo semodule -i my-dhclient.pp
-sudo ausearch -c 'passwd' --raw | audit2allow -M my-passwd
-sudo semodule -i my-passwd.pp
-sudo ausearch -c 'sedispatch' --raw | audit2allow -M my-sedispatch
-sudo semodule -i my-sedispatch.pp
-sudo ausearch -c 'systemd-sysctl' --raw | audit2allow -M my-systemdsysctl
-sudo semodule -i my-systemdsysctl.pp
-
-echo ''
-echo "=============================================="
-echo "Set selinux to permissive & set rules.        "
-echo "=============================================="
 
 sleep 5
 

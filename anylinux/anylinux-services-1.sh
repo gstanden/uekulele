@@ -370,42 +370,14 @@ then
 			sleep 5
  		else 
 			echo ''
-			echo "=============================================="
-			echo "Uekulele $LinuxFlavor Automation on phys host."
-			echo "=============================================="
+			echo "==============================================    "
+			echo "Uekulele $LinuxFlavor Automation on physical host."
+			echo "==============================================    "
 			echo ''
 
 			sleep 5
 
 			clear
-
-			echo ''
-			echo "=============================================="
-			echo "Set selinux to permissive mode & set rules... "
-			echo "=============================================="
-			echo ''
-
-			sudo setenforce 0
-			sudo sed -i '/\([^T][^Y][^P][^E]\)\|\([^#]\)/ s/enforcing/permissive/' /etc/sysconfig/selinux
-			sudo getenforce
-			echo ''
-			sudo ausearch -c 'bash' --raw | audit2allow -M my-bash
-			sudo semodule -i my-bash.pp
-			sudo ausearch -c 'dhclient' --raw | audit2allow -M my-dhclient
-			sudo semodule -i my-dhclient.pp
-			sudo ausearch -c 'passwd' --raw | audit2allow -M my-passwd
-			sudo semodule -i my-passwd.pp
-			sudo ausearch -c 'sedispatch' --raw | audit2allow -M my-sedispatch
-			sudo semodule -i my-sedispatch.pp
-			sudo ausearch -c 'systemd-sysctl' --raw | audit2allow -M my-systemdsysctl
-			sudo semodule -i my-systemdsysctl.pp
-			sudo ausearch -c 'groupadd' --raw | audit2allow -M my-groupadd
-			sudo semodule -i my-groupadd.pp
-
-			echo ''
-			echo "=============================================="
-			echo "Set selinux to permissive & set rules.        "
-			echo "=============================================="
 
 			~/Downloads/uekulele-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
 			~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
