@@ -472,8 +472,9 @@ then
 	echo "=============================================="
 	echo "Check if host is physical or virtual...       "
 	echo "=============================================="
+	echo ''
 	
-	sudo apt-get install facter
+	sudo apt-get -y install facter
 	function GetFacter {
 	facter virtual
 	}

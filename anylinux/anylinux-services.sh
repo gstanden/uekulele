@@ -115,7 +115,7 @@ echo 'Oracle Linux MajorRelease = '$MajorRelease
 PointRelease=$2
 if [ -z $2 ]
 then
-PointRelease=2
+PointRelease=3
 fi
 echo 'Oracle Linux PointRelease = '$PointRelease
 

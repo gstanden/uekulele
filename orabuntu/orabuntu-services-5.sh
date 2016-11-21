@@ -173,33 +173,32 @@ echo "quickly locating Orabuntu-LXC config files.   "
 echo "=============================================="
 echo ''
 
-if [ ! -e ./Manage-Orabuntu-LXC ]
+if [ ! -e ~/Manage-Orabuntu ]
 then
-mkdir ./Manage-Orabuntu-LXC
+mkdir ~/Manage-Orabuntu
 fi
 
-cd ./Manage-Orabuntu-LXC
+cd ~/Manage-Orabuntu
 sudo chmod 755 /etc/orabuntu-lxc-scripts/crt_links.sh 
 sudo /etc/orabuntu-lxc-scripts/crt_links.sh
 
 echo ''
-ls -l ./Manage-Orabuntu-LXC
+ls -l ~/Manage-Orabuntu
 echo ''
-cd ~/orabuntu-lxc-master
+cd ~/Manage-Orabuntu
 
 echo ''
 echo "=============================================="
 echo "Management links directory created.           "
 echo "=============================================="
-echo ''
 
-sleep 15
+sleep 10
 
 clear
 
 echo ''
 echo "=============================================="
-echo "Next step is to setup storage...              "
+echo "Setup DB storage (optional)                   "
 echo "tar -xvf scst-files.tar                       "
 echo "cd scst-files                                 "
 echo "cat README                                    "
@@ -211,3 +210,90 @@ echo "in ./Manage-Orabuntu-LXC to learn more about  "
 echo "what files and configurations are used for the"
 echo "orabuntu-lxc project.                         "
 echo "=============================================="
+
+sleep 5
+
+clear
+
+function CheckRebootNeeded {
+facter virtual
+}
+RebootNeeded=$(CheckRebootNeeded)
+
+if [ $RebootNeeded != 'physical ]
+then
+	echo "=============================================="
+	echo " Facter detects that this server is virtual.  "
+	echo "  A reboot will be needed so that the file    "
+	echo " /etc/NetworkManager/dnsmasq.d/local is read. "
+	echo "=============================================="
+	echo ''
+
+	ls -l etc/NetworkManaager/dnsmasq.s/local
+		
+	echo ''
+	echo "=============================================="
+	echo "Remove additional nameservers...              "
+	echo "=============================================="
+	echo ''
+
+	sudo sed -i "/nameserver 10\.207\.39\.2/s/nameserver 10\.207\.39\.2/# nameserver 10\.207\.39\.2/" /etc/resolv.conf
+	sudo sed -i "/nameserver 10\.207\.29\.2/s/nameserver 10\.207\.29\.2/# nameserver 10\.207\.39\.2/" /etc/resolv.conf
+
+	sudo cat /etc/resolv.conf
+
+	echo ''
+	echo "=============================================="
+	echo "Removed additional nameservers.               "
+	echo "=============================================="
+
+	sleep 5
+
+	clear
+
+	echo "=============================================="
+	echo "                                              "
+	echo "Orabuntu networking will not work until reboot"
+        echo "becuase the required nameservers have been    "
+	echo "commented out in /etc/resolv.conf file.  All  "
+	echo "other networking will function normally (WAN)."
+	echo "If you want to keep working with Orabuntu but "
+	echo "do not want to reboot right now, uncomment the"
+	echo "10.207.39.2 and 10.207.2o.2 nameservers in the"
+	echo "/etc/resolv.conf file.                        "
+	echo "                                              "
+	echo "Be sure to comment them out manually before   "
+	echo "reboot because after reboot the file          "
+	echo "/etc/NetworkManager/dnsmasq.d/local file      "
+	echo "will take over resolution for the orabuntu    "
+	echo "networks.                                     "
+	echo ''
+
+	sudo cat /etc/NetworkManager/dnsmasq.d/local
+
+	echo ''
+	echo "The resolv.conf file should only have in it   "
+	echo "the search domains, the nameserver 127.0.1.1  "
+	echo "and any other custom nameservers in your      "
+	echo "environment.                                  "
+	echo "                                              "
+	echo "Example /etc/resolv.conf (after reboot)       "
+	echo "=============================================="
+	echo "nameserver 127.0.1.1                          "
+	echo "nameserver <yourcustom optional>              "
+	echo "search popeye.com brutus.com                  "
+	echo "=============================================="
+
+	echo ''
+	echo "=============================================="
+	echo "                                              "
+	read -e -p "Reboot Now? [Y/N]                       " -i "Y" ReBoot 
+	echo "                                              "
+	echo "=============================================="
+
+	if [ $ReBoot = 'y' ] || [ $ReBoot = 'Y' ] 
+	then
+		sudo reboot
+	fi
+fi
+

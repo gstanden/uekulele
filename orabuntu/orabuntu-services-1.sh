@@ -40,12 +40,6 @@ Domain2=$4
 NameServer=$5
 LinuxOSMemoryReservation=$6
 
-echo ''
-echo "=============================================="
-echo "Host is not a VM...proceeding with install... "
-echo "=============================================="
-echo ''
-
 sleep 5
 
 clear
@@ -161,7 +155,7 @@ then
 		done
 	done
 
-	sudo iptables -S
+	sudo iptables -S | egrep 'sx1|sw1'
 
 	echo ''
 	echo "=============================================="
@@ -462,6 +456,7 @@ echo "Extracting backup scripts...                  "
 echo "==============================================" 
 echo ''
 
+cd ~/Downloads/uekulele-master/orabuntu/archives
 sudo tar -vP --extract --file=ubuntu-host.tar /etc/orabuntu-lxc-scripts/ubuntu-host-backup.sh
 
 sudo /etc/orabuntu-lxc-scripts/ubuntu-host-backup.sh
@@ -589,6 +584,7 @@ echo "Unpacking host files for Oracle on Ubuntu...  "
 echo "=============================================="
 echo ''
 
+cd ~/Downloads/uekulele-master/orabuntu/archives
 sudo tar -P -xvf ubuntu-host.tar
 sudo tar -P -xvf dns-dhcp-host.tar
 
@@ -793,7 +789,7 @@ echo "Verify iptables rules are set correctly...    "
 echo "=============================================="
 echo ''
 
-sudo iptables -S
+sudo iptables -S | egrep 'sx1|sw1'
 
 echo ''
 echo "=============================================="
@@ -831,7 +827,17 @@ echo "Unpacking LXC nameserver custom files...      "
 echo "=============================================="
 echo ''
 	
+cd ~/Downloads/uekulele-master/orabuntu/archives
 sudo tar -P -xvf dns-dhcp-cont.tar
+
+echo ''
+echo "=============================================="
+echo "Unpacked LXC nameserver custom files.         "
+echo "=============================================="
+
+sleep 5
+
+clear
 
 echo ''
 echo "=============================================="
@@ -856,14 +862,8 @@ echo ''
 echo "=============================================="
 echo "Secret successfuly set in dhcpd.conf file.    "
 echo "=============================================="
-echo ''
 
-echo ''
-echo "=============================================="
-echo "Custom files for Ubuntu unpack complete       "
-echo "=============================================="
-
-sleep 15
+sleep 10
 
 clear
 
@@ -879,6 +879,17 @@ echo ''
 	sudo sed -i '/nameserver/c\nameserver 10.207.39.2' /var/lib/lxc/nsa/rootfs/etc/resolv.conf
 	sudo sh -c "echo 'nameserver 10.207.29.2' >> /var/lib/lxc/nsa/rootfs/etc/resolv.conf"
 	sudo sh -c "echo 'search orabuntu-lxc.com consultingcommandos.us' >> /var/lib/lxc/nsa/rootfs/etc/resolv.conf"
+
+function GetUbuntuDistribRelease {
+cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -f2 -d'='
+}
+UbuntuDistribRelease=$(GetUbuntuDistribRelease)
+if [ $UbuntuDistribRelease = '16.04' ]
+then
+	sudo sed -i '/nameserver 127\.0\.1\.1/s/nameserver 127\.0\.1\.1/nameserver 10\.207\.39\.2/' /etc/resolv.conf
+	sudo sed -i '/nameserver 10\.207\.39\.2/a nameserver 10\.207\.29\.2' /etc/resolv.conf
+	sudo sed -i '/nameserver 10\.207\.29\.2/a nameserver 127\.0\.1\.1' /etc/resolv.conf
+fi
 	sudo sed -i '/search/d' /etc/resolv.conf
 	sudo sh -c "echo 'search orabuntu-lxc.com consultingcommandos.us' >> /etc/resolv.conf"
 
@@ -937,28 +948,34 @@ then
 	sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.consultingcommandos.us /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.$Domain2
 fi
 
-# Cleanup duplicate search lines in /etc/resolv.conf if Orabuntu-LXC has been re-run
+echo ''
+echo "=============================================="
+echo "Remove duplicate /etc/resolv.conf searches..."
+echo "=============================================="
+echo ''
+
 sudo sed -i '$!N; /^\(.*\)\n\1$/!P; D' /etc/resolv.conf
 
-echo ''
-echo "=============================================="
-echo "Restarting NetworkManager...                  "
-echo "Sleeping 20 seconds...                        "
-echo "=============================================="
-echo ''
-
-# So that settings in /etc/NetworkManager/dnsmasq.d/local take effect
-sudo service NetworkManager restart
-sleep 20
+sudo cat /etc/resolv.conf
 
 echo ''
 echo "=============================================="
-echo "NetworkManager restart completed.             "
+echo "Duplicate searches removed.                   "
 echo "=============================================="
+
+sleep 5
+
+clear
+
 echo ''
 echo "=============================================="
 echo "Customize nameserver & domains completed.     "
 echo "=============================================="
+
+sleep 5
+
+clear
+
 echo ''
 echo "=============================================="
 echo "Re-starting LXC container and testing DNS...   "
@@ -1182,7 +1199,7 @@ sudo sh -c "echo 'sudo ln -sf /etc/network/openvswitch/crt_ovs_sw7.sh .' 					>>
 sudo sh -c "echo 'sudo ln -sf /etc/network/openvswitch/crt_ovs_sw8.sh .' 					>> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo 'sudo ln -sf /etc/network/openvswitch/crt_ovs_sw9.sh .' 					>> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo 'sudo ln -sf /etc/network/openvswitch/crt_ovs_sx1.sh .' 					>> /etc/orabuntu-lxc-scripts/crt_links.sh"
-	sudo sh -c "echo 'sudo ln -sf /etc/network/openvswitch/crt_ovs_vm1.sh .' 					>> /etc/orabuntu-lxc-scripts/crt_links.sh"
+sudo sh -c "echo 'sudo ln -sf /etc/network/openvswitch/crt_ovs_vm1.sh .' 					>> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo 'sudo ln -sf /etc/network/openvswitch/del-bridges.sh .' 					>> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo 'sudo ln -sf /etc/network/openvswitch/veth_cleanups.sh .' 					>> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo 'sudo ln -sf /etc/network/openvswitch/create-ovs-sw-files-v2.sh .' 				>> /etc/orabuntu-lxc-scripts/crt_links.sh"

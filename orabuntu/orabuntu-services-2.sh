@@ -42,6 +42,7 @@ OracleRelease=$1$2
 OracleVersion=$1.$2
 Domain=$3
 
+echo 'OracleRelease = '$OracleRelease
 sleep 5
 
 clear
@@ -52,7 +53,8 @@ echo "Extracting oracle-specific files to container."
 echo "=============================================="
 echo ''
 
-sudo tar -xvf ./orabuntu-lxc-master/lxc-oracle-files.tar -C /var/lib/lxc/oel$OracleRelease
+cd ~/Downloads/uekulele-master/orabuntu/archives
+sudo tar -xvf lxc-oracle-files.tar -C /var/lib/lxc/oel$OracleRelease
 
 sudo chown root:root /var/lib/lxc/oel$OracleRelease/rootfs/root/hugepages_setting.sh
 sudo chmod 755 /var/lib/lxc/oel$OracleRelease/rootfs/root/hugepages_setting.sh
