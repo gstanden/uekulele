@@ -1088,7 +1088,8 @@ echo "Unpacking G1 host files for Oracle Linux...   "
 echo "=============================================="
 echo ''
 
-sudo tar -P -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/ubuntu-host.tar   --touch
+sudo tar -P -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/ubuntu-host.tar --touch
+sudo chmod +x /etc/network/openvswitch/crt_ovs_s*.sh
 
 echo ''
 echo "=============================================="
@@ -1107,11 +1108,8 @@ echo ''
 
 sudo tar -P -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/dns-dhcp-host.tar --touch
 
-# GLS 20161118 This section for any tweaks to the unpacked files from dns-dhcp-host.tar archive.
-sudo sed -i '/add-port/s/add-port/--may-exist add-port/' /etc/network/if-up.d/openvswitch/nsa-pub-ifup-sw1
-sudo sed -i '/add-port/s/add-port/--may-exist add-port/' /etc/network/if-up.d/openvswitch/nsa-pub-ifup-sx1
+# GLS 20161118 This section for any tweaks to the unpacked files from tar archives.
 sudo rm /etc/network/if-up.d/orabuntu-lxc-net
-
 
 echo ''
 echo "=============================================="
@@ -1204,11 +1202,35 @@ sudo sh -c "echo 'kernel.panic_on_oops = 1'                  >> /etc/sysctl.d/60
 
 echo ''
 echo "=============================================="
+echo "Created /etc/sysctl.d/60-oracle.conf file ... "
+echo "=============================================="
+
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
 echo "Display /etc/sysctl.d/60-oracle.conf"
 echo "=============================================="
 echo ''
 
 sudo sysctl -p /etc/sysctl.d/60-oracle.conf
+
+echo ''
+echo "=============================================="
+echo "Displayed /etc/sysctl.d/60-oracle.conf file.  "
+echo "=============================================="
+
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
+echo "Create 60-oracle.service in systemd...        "
+echo "=============================================="
+echo ''
 
 if [ ! -f /etc/systemd/system/60-oracle.service ]
 then
@@ -1231,11 +1253,10 @@ sudo systemctl enable 60-oracle
 echo ''
 fi
 
-echo "=============================================="
-echo "Created /etc/sysctl.d/60-oracle.conf          "
-echo "Sleeping 10 seconds for settings review ...   "
-echo "=============================================="
 echo ''
+echo "=============================================="
+echo "Created 60-oracle.service in systemd.         "
+echo "=============================================="
 
 sleep 5
 
@@ -1414,6 +1435,86 @@ clear
 
 echo ''
 echo "=============================================="
+echo "Create sw1 and sx1 OpenvSwitch services...    "
+echo "=============================================="
+echo ''
+
+sudo chmod 755 /etc/network/openvswitch/*.sh
+
+SwitchList='sw1 sx1'
+for k in $SwitchList
+do
+        if [ ! -f /etc/systemd/system/$k.service ]
+        then
+                	sudo sh -c "echo '[Unit]'						 > /etc/systemd/system/$k.service"
+                	sudo sh -c "echo 'Description=$k Service'				>> /etc/systemd/system/$k.service"
+
+		if [ $k = 'sw1' ]
+		then
+                	sudo sh -c "echo 'Wants=network-online.target'				>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo 'After=network-online.target'				>> /etc/systemd/system/$k.service"
+		fi
+		if [ $k = 'sx1' ]
+		then
+                	sudo sh -c "echo 'Wants=network-online.target'				>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo 'After=network-online.target sw1.service'		>> /etc/systemd/system/$k.service"
+		fi
+                	sudo sh -c "echo ''							>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo '[Service]'						>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo 'Type=oneshot'						>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo 'User=root'						>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo 'RemainAfterExit=yes'					>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo 'ExecStart=/etc/network/openvswitch/crt_ovs_$k.sh' 	>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo ''							>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo '[Install]'						>> /etc/systemd/system/$k.service"
+                	sudo sh -c "echo 'WantedBy=multi-user.target'				>> /etc/systemd/system/$k.service"
+        fi
+done
+
+echo ''
+echo "=============================================="
+echo "OpenvSwitch Priv/ASM Onboot Services Created. "
+echo "=============================================="
+
+sleep 5
+
+clear
+
+for k in $SwitchList
+do
+	echo ''
+	echo "=============================================="
+	echo "Start OpenvSwitch $k ...            "
+	echo "=============================================="
+	echo ''
+
+        sudo chmod 644 /etc/systemd/system/$k.service
+	sudo systemctl daemon-reload
+        sudo systemctl enable $k.service
+	sudo service $k start
+	sudo service $k status
+
+	echo ''
+	echo "=============================================="
+	echo "OpenvSwitch $k is up.                         "
+	echo "=============================================="
+	
+	sleep 5
+
+	clear
+done
+
+echo ''
+echo "=============================================="
+echo "Openvswitch interfaces installed & configured."
+echo "=============================================="
+
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
 echo "Activating NetworkManager dnsmasq service ... "
 echo "This has a 60 second timeout so be patient... "
 echo "=============================================="
@@ -1437,20 +1538,22 @@ do
 ResolvReady=$(CheckResolvReady)
 ((NumResolvReadyTries=NumResolvReadyTries+1))
 sleep 1
+echo ''
 echo 'NumResolvReadyTries = '$NumResolvReadyTries
 done
 
 if [ $ResolvReady -eq 1 ]
 then
-sudo sh -c "echo 'search $Domain1 $Domain2' >> /etc/resolv.conf"
+sudo service sw1 restart
+# sudo sh -c "echo 'search $Domain1 $Domain2' >> /etc/resolv.conf"
 else
+echo ''
 echo "=============================================="
 echo "NetworkManager didn't set nameserver 127.0.0.1"
 echo "which is the setting required for NM dnsmasq. "
 echo "=============================================="
 fi
 
-echo ''
 sudo cat /etc/resolv.conf
 
 echo ''
@@ -1500,6 +1603,46 @@ sleep 5
 clear
 
 echo ''
+
+# echo ''
+# echo "=============================================="
+# echo "Starting OpenvSwitch sw1 ...                  "
+# echo "=============================================="
+
+# sudo /etc/network/openvswitch/crt_ovs_sw1.sh >/dev/null 2>&1
+# echo ''
+# sleep 3
+# ifconfig sw1
+
+# echo "=============================================="
+# echo "OpenvSwitch sw1 started.                      "
+# echo "=============================================="
+# echo ''
+
+# sleep 5
+
+# clear
+
+# echo ''
+# echo "=============================================="
+# echo "Starting OpenvSwitch sx1 ...                  "
+# echo "=============================================="
+
+# sudo /etc/network/openvswitch/crt_ovs_sx1.sh >/dev/null 2>&1
+# echo ''
+# sleep 3
+# ifconfig sx1
+
+# echo "=============================================="
+# echo "OpenvSwitch sx1 started.                      "
+# echo "=============================================="
+# echo ''
+
+sleep 5
+
+clear
+
+echo ''
 echo "=============================================="
 echo "Create $NameServer Onboot Service...          "
 echo "=============================================="
@@ -1536,44 +1679,6 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Starting OpenvSwitch sw1 ...                  "
-echo "=============================================="
-
-sudo /etc/network/openvswitch/crt_ovs_sw1.sh >/dev/null 2>&1
-echo ''
-sleep 3
-ifconfig sw1
-
-echo "=============================================="
-echo "OpenvSwitch sw1 started.                      "
-echo "=============================================="
-echo ''
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
-echo "Starting OpenvSwitch sx1 ...                  "
-echo "=============================================="
-
-sudo /etc/network/openvswitch/crt_ovs_sx1.sh >/dev/null 2>&1
-echo ''
-sleep 3
-ifconfig sx1
-
-echo "=============================================="
-echo "OpenvSwitch sx1 started.                      "
-echo "=============================================="
-echo ''
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
 echo "Verify iptables rules are set correctly...    "
 echo "=============================================="
 echo ''
@@ -1592,6 +1697,7 @@ sleep 5
 
 clear
 
+echo ''
 echo "=============================================="
 echo "Ensure both required networks up...           "
 echo "=============================================="
@@ -1834,7 +1940,6 @@ sudo sh -c "echo ' ln -sf /etc/network/openvswitch/crt_ovs_sw7.sh .' 					   >> 
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch/crt_ovs_sw8.sh .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch/crt_ovs_sw9.sh .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch/crt_ovs_sx1.sh .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
-sudo sh -c "echo ' ln -sf /etc/network/openvswitch/crt_ovs_vm1.sh .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch/del-bridges.sh .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch/veth_cleanups.sh .' 					   >> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo ' ln -sf /etc/network/openvswitch/create-ovs-sw-files-v2.sh .' 			   >> /etc/orabuntu-lxc-scripts/crt_links.sh"

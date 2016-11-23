@@ -51,27 +51,14 @@ echo "Create Priv/ASM OpenvSwitch Onboot Services..."
 echo "=============================================="
 echo ''
 
-SwitchList='sw1 sx1 sw2 sw3 sw4 sw5 sw6 sw7 sw8 sw9'
+SwitchList='sw2 sw3 sw4 sw5 sw6 sw7 sw8 sw9'
 for k in $SwitchList
 do
         if [ ! -f /etc/systemd/system/$k.service ]
         then
                 sudo sh -c "echo '[Unit]'						 > /etc/systemd/system/$k.service"
                 sudo sh -c "echo 'Description=$k Service'				>> /etc/systemd/system/$k.service"
-		if [ $k = 'sw1' ]
-		then
-			sudo sh -c "echo 'Wants=network-online.target'			>> /etc/systemd/system/$k.service"
-			sudo sh -c "echo 'After=network-online.target'			>> /etc/systemd/system/$k.service"
-		fi
-		if [ $k = 'sx1' ]
-		then
-			sudo sh -c "echo 'Wants=network-online.target'			>> /etc/systemd/system/$k.service"
-			sudo sh -c "echo 'After=network-online.target sw1.service'	>> /etc/systemd/system/$k.service"
-		fi
-		if [ $k != 'sw1' ] && [ $k != 'sx1' ]
-		then
-                	sudo sh -c "echo 'After=network-online.target'			>> /etc/systemd/system/$k.service"
-		fi
+                sudo sh -c "echo 'After=network-online.target'				>> /etc/systemd/system/$k.service"
                 sudo sh -c "echo ''							>> /etc/systemd/system/$k.service"
                 sudo sh -c "echo '[Service]'						>> /etc/systemd/system/$k.service"
                 sudo sh -c "echo 'Type=oneshot'						>> /etc/systemd/system/$k.service"
@@ -142,12 +129,16 @@ do
 	# GLS 20160707 updated to use lxc-copy instead of lxc-clone for Ubuntu 16.04
 	# GLS 20160707 continues to use lxc-clone for Ubuntu 15.04 and 15.10
 
+	sudo /etc/network/openvswitch/veth_cleanups.sh $j > /dev/null 2>&1
+
 	function GetRedHatVersion {
 	cat /etc/redhat-release  | cut -f7 -d' ' | cut -f1 -d'.'
 	}
 	RedHatVersion=$(GetRedHatVersion)
 
+	echo ''
 	echo "Starting container $j ..."
+	echo ''
 	if [ $RedHatVersion = 7 ]
 	then
 	function CheckPublicIPIterative {
@@ -155,7 +146,7 @@ do
 	}
 	fi
 	PublicIPIterative=$(CheckPublicIPIterative)
-	echo $j | grep oel
+	echo $j | grep oel >/dev/null 2>&1
 	if [ $? -eq 0 ]
 	then
 	sudo bash -c "cat $Config|grep ipv4|cut -f2 -d'='|sed 's/^[ \t]*//;s/[ \t]*$//'|cut -f4 -d'.'|sed 's/^/\./'|xargs -I '{}' sed -i "/ipv4/s/\{}/\.1$OR/g" $Config"
@@ -168,7 +159,7 @@ do
 	while [ "$PublicIPIterative" != 10207 ] && [ "$i" -le 10 ]
 	do
 		echo "Waiting for $j Public IP to come up..."
-		sleep 5
+		sleep 12
 		PublicIPIterative=$(CheckPublicIPIterative)
 		if [ $i -eq 5 ]
 		then
@@ -179,6 +170,7 @@ do
 		echo ''
 		sleep 2
 		sudo lxc-start -n $j
+		sleep 5
 		fi
 	sleep 1
 	i=$((i+1))
@@ -238,13 +230,65 @@ echo "Management links directory created.           "
 echo "=============================================="
 echo ''
 
-sleep 15
+sleep 10
 
 clear
 
 echo ''
 echo "=============================================="
-echo "Set selinux to permissive mode & set rules... "
+echo "Create selinux-lxc.sh file...                 "
+echo "=============================================="
+echo ''
+
+mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/selinux
+touch /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+ls -l /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo ''
+cd /home/ubuntu/Downloads/uekulele-master/uekulele/selinux
+
+echo 'sudo ausearch -c 'lxcattach' --raw | audit2allow -M my-lxcattach'			>  /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-lxcattach.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'dhclient' --raw | audit2allow -M my-dhclient'			>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-dhclient.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'passwd' --raw | audit2allow -M my-passwd'			>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-passwd.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'sedispatch' --raw | audit2allow -M my-sedispatch'		>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-sedispatch.pp'						>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'systemd-sysctl' --raw | audit2allow -M my-systemdsysctl'	>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-systemdsysctl.pp'						>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'ovs-vsctl' --raw | audit2allow -M my-ovsvsctl'			>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-ovsvsctl.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'sshd' --raw | audit2allow -M my-sshd'				>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-sshd.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'gdm-session-wor' --raw | audit2allow -M my-gdmsessionwor'	>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-gdmsessionwor.pp'						>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'pickup' --raw | audit2allow -M my-pickup'			>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-pickup.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'sedispatch' --raw | audit2allow -M my-sedispatch'		>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-sedispatch.pp'						>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'iscsid' --raw | audit2allow -M my-iscsid'			>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-iscsid.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'dhclient' --raw | audit2allow -M my-dhclient'			>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-dhclient.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'ovs-vsctl' --raw | audit2allow -M my-ovsvsctl'			>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-ovsvsctl.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'chpasswd' --raw | audit2allow -M my-chpasswd'			>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-chpasswd.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo ausearch -c 'colord' --raw | audit2allow -M my-colord'			>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+echo 'sudo semodule -i my-colord.pp'							>> /home/ubuntu/Downloads/uekulele-master/uekulele/selinux/selinux-lxc.sh
+
+echo ''
+echo "=============================================="
+echo "Created selinux-lxc.sh file.                  "
+echo "=============================================="
+
+clear
+
+sleep 5
+
+echo ''
+echo "=============================================="
+echo "Apply selected selinux adjustments for lxc... "
 echo "=============================================="
 echo ''
 
@@ -254,11 +298,14 @@ facter virtual
 Facter=$(GetFacter)
 if [ $Facter = 'physical' ]
 then
-	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/selinux
-	cd /home/ubuntu/Downloads/uekulele-master/uekulele/selinux
 	sudo setenforce 0
+	echo ''
 	sudo getenforce
-	sudo sed -i '/\([^T][^Y][^P][^E]\)\|\([^#]\)/ s/enforcing/permissive/' /etc/sysconfig/selinux
+	echo ''
+	if [ -f /etc/sysconfig/selinux ]
+	then
+		sudo sed -i '/\([^T][^Y][^P][^E]\)\|\([^#]\)/ s/enforcing/permissive/' /etc/sysconfig/selinux
+	fi
 	echo ''
 	sudo ausearch -c 'lxcattach' --raw | audit2allow -M my-lxcattach
 	sudo semodule -i my-lxcattach.pp
@@ -276,6 +323,33 @@ then
 	sudo semodule -i my-sshd.pp
 	sudo ausearch -c 'gdm-session-wor' --raw | audit2allow -M my-gdmsessionwor
 	sudo semodule -i my-gdmsessionwor.pp
+	sudo ausearch -c 'pickup' --raw | audit2allow -M my-pickup
+	sudo semodule -i my-pickup.pp
+	sudo ausearch -c 'sedispatch' --raw | audit2allow -M my-sedispatch
+	sudo semodule -i my-sedispatch.pp
+	sudo ausearch -c 'iscsid' --raw | audit2allow -M my-iscsid
+	sudo semodule -i my-iscsid.pp
+	sudo ausearch -c 'dhclient' --raw | audit2allow -M my-dhclient
+	sudo semodule -i my-dhclient.pp
+	sudo ausearch -c 'ovs-vsctl' --raw | audit2allow -M my-ovsvsctl
+	sudo semodule -i my-ovsvsctl.pp
+	sudo ausearch -c 'chpasswd' --raw | audit2allow -M my-chpasswd
+	sudo semodule -i my-chpasswd.pp
+	sudo ausearch -c 'colord' --raw | audit2allow -M my-colord
+	sudo semodule -i my-colord.pp
+else
+	sudo setenforce 0
+	echo ''
+	sudo getenforce
+	echo ''
+	if [ -f /etc/sysconfig/selinux ]
+	then
+		sudo sed -i '/\([^T][^Y][^P][^E]\)\|\([^#]\)/ s/enforcing/permissive/' /etc/sysconfig/selinux
+	fi
+	sudo ausearch -c 'passwd' --raw | audit2allow -M my-passwd
+	sudo semodule -i my-passwd.pp
+	sudo ausearch -c 'chpasswd' --raw | audit2allow -M my-chpasswd
+	sudo semodule -i my-chpasswd.pp
 fi
 
 echo ''
