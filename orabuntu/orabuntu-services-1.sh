@@ -748,6 +748,7 @@ echo "=============================================="
 echo "Starting OpenvSwitch sw1 ...                  "
 echo "=============================================="
 
+sudo chmod 755 /etc/network/openvswitch/crt_ovs_sw1.sh
 sudo /etc/network/openvswitch/crt_ovs_sw1.sh >/dev/null 2>&1
 echo ''
 sleep 3
@@ -768,6 +769,7 @@ echo "=============================================="
 echo "Starting OpenvSwitch sx1 ...                  "
 echo "=============================================="
 
+sudo chmod 755 /etc/network/openvswitch/crt_ovs_sx1.sh
 sudo /etc/network/openvswitch/crt_ovs_sx1.sh >/dev/null 2>&1
 echo ''
 sleep 3
@@ -891,7 +893,7 @@ then
 	sudo sed -i '/nameserver 10\.207\.29\.2/a nameserver 127\.0\.1\.1' /etc/resolv.conf
 fi
 	sudo sed -i '/search/d' /etc/resolv.conf
-	sudo sh -c "echo 'search orabuntu-lxc.com consultingcommandos.us' >> /etc/resolv.conf"
+	sudo sh -c "echo 'search orabuntu-lxc.com consultingcommandos.us gns1.orabuntu-lxc.com' >> /etc/resolv.conf"
 
 if [ -n $NameServer ]
 then
@@ -922,6 +924,7 @@ then
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.orabuntu-lxc.com
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.orabuntu-lxc.com
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/resolv.conf
+	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/NetworkManager/dnsmasq.d/local
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/NetworkManager/dnsmasq.d/local
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/network/interfaces
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/resolv.conf

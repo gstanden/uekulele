@@ -122,7 +122,7 @@ do
 	while [ "$PublicIPIterative" != 10207 ] && [ "$i" -le 10 ]
 	do
 		echo "Waiting for $j Public IP to come up..."
-		sleep 5
+		sleep 12
 		PublicIPIterative=$(CheckPublicIPIterative)
 		if [ $i -eq 5 ]
 		then
@@ -220,7 +220,7 @@ facter virtual
 }
 RebootNeeded=$(CheckRebootNeeded)
 
-if [ $RebootNeeded != 'physical ]
+if [ $RebootNeeded != 'physical' ]
 then
 	echo "=============================================="
 	echo " Facter detects that this server is virtual.  "
