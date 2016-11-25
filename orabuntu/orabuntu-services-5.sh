@@ -95,7 +95,9 @@ do
 	UbuntuVersion=$(GetUbuntuVersion)
 	# GLS 20160707
 
+	echo ''
 	echo "Starting container $j ..."
+	echo ''
 	if [ $UbuntuVersion = 15.04 ] || [ $UbuntuVersion = 15.10 ]
 	then
 	function CheckPublicIPIterative {
@@ -109,7 +111,7 @@ do
 	}
 	fi
 	PublicIPIterative=$(CheckPublicIPIterative)
-	echo $j | grep oel
+	echo $j | grep oel > /dev/null
 	if [ $? -eq 0 ]
 	then
 	sudo bash -c "cat $Config|grep ipv4|cut -f2 -d'='|sed 's/^[ \t]*//;s/[ \t]*$//'|cut -f4 -d'.'|sed 's/^/\./'|xargs -I '{}' sed -i "/ipv4/s/\{}/\.1$OR/g" $Config"
@@ -122,7 +124,7 @@ do
 	while [ "$PublicIPIterative" != 10207 ] && [ "$i" -le 10 ]
 	do
 		echo "Waiting for $j Public IP to come up..."
-		sleep 12
+		sleep 20
 		PublicIPIterative=$(CheckPublicIPIterative)
 		if [ $i -eq 5 ]
 		then
@@ -228,8 +230,21 @@ then
 	echo " /etc/NetworkManager/dnsmasq.d/local is read. "
 	echo "=============================================="
 	echo ''
+	echo "=============================================="
+	echo "Display /etc/NetworkManager/dnsmasq.d/local   "
+	echo "=============================================="
+	echo ''
 
-	ls -l etc/NetworkManaager/dnsmasq.s/local
+	sudo ls -l /etc/NetworkManaager/dnsmasq.d/local
+
+	echo ''
+	echo "=============================================="
+	echo "Displayed /etc/NetworkManager/dnsmasq.d/local "
+	echo "=============================================="
+
+	sleep 5
+
+	clear
 		
 	echo ''
 	echo "=============================================="
@@ -254,12 +269,12 @@ then
 	echo "=============================================="
 	echo "                                              "
 	echo "Orabuntu networking will not work until reboot"
-        echo "becuase the required nameservers have been    "
+        echo "because the required nameservers have been    "
 	echo "commented out in /etc/resolv.conf file.  All  "
 	echo "other networking will function normally (WAN)."
 	echo "If you want to keep working with Orabuntu but "
 	echo "do not want to reboot right now, uncomment the"
-	echo "10.207.39.2 and 10.207.2o.2 nameservers in the"
+	echo "10.207.39.2 and 10.207.29.2 nameservers in the"
 	echo "/etc/resolv.conf file.                        "
 	echo "                                              "
 	echo "Be sure to comment them out manually before   "
@@ -277,13 +292,18 @@ then
 	echo "and any other custom nameservers in your      "
 	echo "environment.                                  "
 	echo "                                              "
+	echo "=============================================="
 	echo "Example /etc/resolv.conf (after reboot)       "
 	echo "=============================================="
+	echo ''
 	echo "nameserver 127.0.1.1                          "
 	echo "nameserver <yourcustom optional>              "
 	echo "search popeye.com brutus.com                  "
+	echo ''
 	echo "=============================================="
-
+	echo "Example /etc/resolv.conf displayed.           "
+	echo "=============================================="
+	echo ''
 	echo ''
 	echo "=============================================="
 	echo "                                              "

@@ -492,7 +492,7 @@ then
 			echo ''
 
 			~/Downloads/uekulele-master/orabuntu/orabuntu-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
-			~/Downloads/uekulele-master/orabuntu/orabuntu-services-2.sh $MajorRelease $PointRelease $Domain1
+			~/Downloads/uekulele-master/orabuntu/orabuntu-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
 			~/Downloads/uekulele-master/orabuntu/orabuntu-services-3.sh $MajorRelease $PointRelease
 			~/Downloads/uekulele-master/orabuntu/orabuntu-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
 			~/Downloads/uekulele-master/orabuntu/orabuntu-services-5.sh $MajorRelease $PointRelease

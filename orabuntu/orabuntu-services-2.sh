@@ -25,7 +25,7 @@ clear
 
 echo ''
 echo "=============================================="
-echo "anylinux-services-2.sh script                   "
+echo "orabuntu-services-2.sh script                   "
 echo "                                              "
 echo "This script customizes container for oracle.  "
 echo "This script creates rsa key for host if one   "
@@ -40,9 +40,11 @@ echo ''
 MajorRelease=$1
 OracleRelease=$1$2
 OracleVersion=$1.$2
-Domain=$3
+Domain1=$3
+Domain2=$4
 
-echo 'OracleRelease = '$OracleRelease
+# echo 'OracleRelease = '$OracleRelease
+
 sleep 5
 
 clear
@@ -54,7 +56,7 @@ echo "=============================================="
 echo ''
 
 cd ~/Downloads/uekulele-master/orabuntu/archives
-sudo tar -xvf lxc-oracle-files.tar -C /var/lib/lxc/oel$OracleRelease
+sudo tar -xvf lxc-oracle-files.tar -C /var/lib/lxc/oel$OracleRelease --touch
 
 sudo chown root:root /var/lib/lxc/oel$OracleRelease/rootfs/root/hugepages_setting.sh
 sudo chmod 755 /var/lib/lxc/oel$OracleRelease/rootfs/root/hugepages_setting.sh
@@ -69,7 +71,19 @@ sudo chmod 755 /var/lib/lxc/oel$OracleRelease/rootfs/root/create_users.sh
 sudo chown root:root /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
 sudo chmod 644 /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
 sudo sed -i "s/HOSTNAME=ContainerName/HOSTNAME=oel$OracleRelease/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/sysconfig/network
-sudo sed -i "s/yourdomain\.com/$Domain/" /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
+sudo rm /var/lib/lxc/oel$OracleRelease/rootfs/etc/ntp.conf
+
+if [ -n $Domain1 ]
+then
+        sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/NetworkManager/dnsmasq.d/local
+	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
+fi
+
+if [ -n $Domain2 ]
+then
+        sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/NetworkManager/dnsmasq.d/local
+	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
+fi
 
 echo ''
 echo "=============================================="
@@ -244,6 +258,42 @@ clear
 
 echo ''
 echo "=============================================="
+echo "Create LXC NTP service file...                "
+echo "=============================================="
+echo ''
+
+Wants=ntpd.service
+Before=ntpd.service
+
+sudo sh -c "echo '[Unit]'             	         		 		>  /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'Description=ntp Service'					>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'Wants=ntpd.service'						>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'Before=ntpd.service'						>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo ''								>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo '[Service]'							>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'Type=oneshot'							>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'User=root'							>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'RemainAfterExit=yes'						>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'ExecStart=/usr/sbin/ntpd -x'					>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'ExecStop=/bin/bash /usr/sbin/service /usr/sbin/ntpd stop'	>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo ''								>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo '[Install]'							>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'WantedBy=multi-user.target'					>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+
+sudo cat /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service
+
+echo ''
+echo "=============================================="
+echo "Created LXC NTP service file.                 "
+echo "=============================================="
+echo ''
+
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
 echo "Initialize LXC Seed Container on OpenvSwitch.."
 echo "=============================================="
 
@@ -315,7 +365,7 @@ then
 		do
 			echo "Waiting for $j Public IP to come up..."
 			echo ''
-			sleep 5
+			sleep 12
 			PublicIPIterative=$(CheckPublicIPIterative)
 			if [ $i -eq 5 ]
 			then
@@ -401,25 +451,52 @@ if [ $? -ne 0 ]
 then
 echo ''
 echo "=============================================="
-echo "No-password ssh to oel$OracleRelease has issue(s).      "
-echo "No-password ssh to oel$OracleRelease must succeed.      "
-echo "Fix issues retry script.                      "
+echo "lxc-attach is failing...see if selinux is set."
 echo "Script exiting.                               "
 echo "=============================================="
 exit
 fi
 echo ''
 echo "=============================================="
-echo "No-password ssh test to oel$OracleRelease successful.   "
+echo "Test lxc-attach oel$OracleRelease successful. "
 echo "=============================================="
 
 sleep 5
 
 clear
 
+# echo ''
+# echo "=============================================="
+# echo "Enabling LXC NTP service...                   "
+# echo "=============================================="
+# echo ''
+
+# sudo lxc-attach -n oel$OracleRelease -- chmod +x /etc/systemd/system/ntp.service
+# sudo lxc-attach -n oel$OracleRelease -- systemctl enable ntp.service
+# echo ''
+# sudo lxc-attach -n oel$OracleRelease -- service ntp start
+# echo ''
+# sudo lxc-attach -n oel$OracleRelease -- service ntpd start
+# echo ''
+# sudo lxc-attach -n oel$OracleRelease -- service ntp status
+# echo ''
+# sudo lxc-attach -n oel$OracleRelease -- service ntpd status
+# echo ''
+# sudo lxc-attach -n oel$OracleRelease -- chkconfig ntp on
+# sudo lxc-attach -n oel$OracleRelease -- chkconfig ntpd on
+
+# echo ''
+# echo "=============================================="
+# echo "Enabling LXC NTP service...                   "
+# echo "=============================================="
+
+# sleep 5
+
+# clear
+
 echo ''
 echo "==============================================" 
-echo "Next script to run: anylinux-services-3.sh      "
+echo "Next script to run: orabuntu-services-3.sh    "
 echo "=============================================="
 
 sleep 5

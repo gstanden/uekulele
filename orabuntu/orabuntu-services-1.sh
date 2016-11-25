@@ -580,20 +580,42 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Unpacking host files for Oracle on Ubuntu...  "
+echo "Unpacking G1 host files for Ubuntu...         "
 echo "=============================================="
 echo ''
 
 cd ~/Downloads/uekulele-master/orabuntu/archives
-sudo tar -P -xvf ubuntu-host.tar
-sudo tar -P -xvf dns-dhcp-host.tar
+
+sudo tar -P -xvf ubuntu-host.tar --touch
 
 echo ''
-echo "============================================="
-echo "Custom files for Ubuntu unpack complete      "
-echo "============================================="
+echo "=============================================="
+echo "Unpacked G1 host files for Ubuntu.            "
+echo "=============================================="
 
-sleep 10
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
+echo "Unpacking G2 host files for Ubuntu...         "
+echo "=============================================="
+echo ''
+
+sudo tar -P -xvf dns-dhcp-host.tar --touch
+
+# GLS 20161124 Tweaks to files unpacked from dns-dhcp-host.tar file
+sudo sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' /etc/network/if-up.d/orabuntu-lxc-net
+sudo sed -i '/# end script/s/# end script//'  /etc/network/if-up.d/orabuntu-lxc-net
+sudo sed -i '/# script/s/# script/#/'         /etc/network/if-up.d/orabuntu-lxc-net
+
+echo ''
+echo "=============================================="
+echo "Unpacked G2 host files for Ubuntu.            "
+echo "=============================================="
+
+sleep 5
 
 clear
 
@@ -803,15 +825,14 @@ sleep 5
 
 clear
 
+echo ''
 echo "=============================================="
 echo "Ensure 10.207.39.0/24 & 10.207.29.0/24 up...  "
 echo "=============================================="
-echo ''
 
 sudo ifconfig sw1
 sudo ifconfig sx1
 
-echo ''
 echo "=============================================="
 echo "Networks are up.                              "
 echo "=============================================="
@@ -881,6 +902,10 @@ echo ''
 	sudo sed -i '/nameserver/c\nameserver 10.207.39.2' /var/lib/lxc/nsa/rootfs/etc/resolv.conf
 	sudo sh -c "echo 'nameserver 10.207.29.2' >> /var/lib/lxc/nsa/rootfs/etc/resolv.conf"
 	sudo sh -c "echo 'search orabuntu-lxc.com consultingcommandos.us' >> /var/lib/lxc/nsa/rootfs/etc/resolv.conf"
+	sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.orabuntu-lxc.com
+	sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.consultingcommandos.us
+	sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.orabuntu-lxc.com
+	sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.consultingcommandos.us
 
 function GetUbuntuDistribRelease {
 cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -f2 -d'='
@@ -924,7 +949,7 @@ then
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.orabuntu-lxc.com
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.orabuntu-lxc.com
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/resolv.conf
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/NetworkManager/dnsmasq.d/local
+	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/dhcp/dhclient.conf
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/NetworkManager/dnsmasq.d/local
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/network/interfaces
 	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/resolv.conf
@@ -941,7 +966,9 @@ then
 	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.consultingcommandos.us
 	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.consultingcommandos.us
 	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/resolv.conf
+	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/dhcp/dhclient.conf
 	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /etc/NetworkManager/dnsmasq.d/local
+	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /etc/dhcp/dhclient.conf
 	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /etc/network/interfaces
 	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /etc/resolv.conf
 	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/bind/named.conf.local
@@ -950,6 +977,10 @@ then
 	sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.consultingcommandos.us /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.$Domain2
 	sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.consultingcommandos.us /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.$Domain2
 fi
+
+sleep 5
+
+clear
 
 echo ''
 echo "=============================================="
@@ -986,7 +1017,6 @@ echo "=============================================="
 
 if [ -n $NameServer ]
 then
-	echo ''
 	sudo lxc-start -n $NameServer > /dev/null 2>&1
 	echo ''
 	nslookup $NameServer
@@ -1005,7 +1035,6 @@ else
 	fi
 fi
 
-echo ''
 echo "=============================================="
 echo "LXC container restarted & DNS tested.         "
 echo "=============================================="
@@ -1018,7 +1047,6 @@ echo ''
 echo "=============================================="
 echo "Moving seed openvswitch veth files...         "
 echo "=============================================="
-echo ''
 
 if [ ! -e /etc/orabuntu-lxc-release ] || [ ! -e /etc/network/if-up.d/lxcora00-pub-ifup-sw1 ] || [ ! -e /etc/network/if-down.d/lxcora00-pub-ifdown-sw1 ]
 then
@@ -1041,15 +1069,12 @@ then
 	sudo cp lxcora00-priv4-ifdown-sw7 oel$OracleRelease-priv4-ifdown-sw7
 	sudo cp lxcora00-pub-ifdown-sw1   oel$OracleRelease-pub-ifdown-sw1
 
-	sudo useradd -u 1098 grid >/dev/null 2>&1
-	sudo useradd -u 500 oracle >/dev/null 2>&1
-fi
+	sudo useradd -u 1098 grid 		>/dev/null 2>&1
+	sudo useradd -u 500 oracle 		>/dev/null 2>&1
+	sudo groupadd -g 1100 asmadmin		>/dev/null 2>&1
+	sudo usermod -a -G asmadmin grid	>/dev/null 2>&1
 
-echo ''
-echo "=============================================="
-echo "Moving seed openvswitch veth files complete.  "
-echo "=============================================="
-echo ''
+fi
 
 sleep 5
 
@@ -1081,6 +1106,9 @@ echo ''
 
 sudo touch /etc/orabuntu-lxc-release
 sudo sh -c "echo 'Orabuntu-LXC v4.0' > /etc/orabuntu-lxc-release"
+sudo ls -l /etc/orabuntu-lxc-release
+echo ''
+sudo cat /etc/orabuntu-lxc-release
 
 echo ''
 echo "=============================================="
@@ -1115,7 +1143,6 @@ echo ''
 echo "=============================================="
 echo "Create the crt_links.sh script...             "
 echo "=============================================="
-echo ''
 
 sudo mkdir -p /etc/orabuntu-lxc-scripts
 
@@ -1211,12 +1238,6 @@ sudo sh -c "echo 'sudo ln -sf /etc/default/openvswitch-switch .' 						>> /etc/o
 sudo sh -c "echo 'sudo ln -sf /etc/multipath.conf .' 								>> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo 'sudo ln -sf /etc/multipath.conf.example .' 							>> /etc/orabuntu-lxc-scripts/crt_links.sh"
 sudo sh -c "echo 'sudo ln -sf /etc/network/if-down.d/scst-net .' 						>> /etc/orabuntu-lxc-scripts/crt_links.sh"
-
-echo ''
-echo "=============================================="
-echo "Created the crt_links.sh script.              "
-echo "=============================================="
-echo ''
 
 sleep 5
 

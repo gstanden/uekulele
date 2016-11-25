@@ -277,6 +277,7 @@ sudo lxc-attach -n oel$OracleRelease -- chown grid:oinstall /home/grid/.bashrc
 sudo lxc-attach -n oel$OracleRelease -- chown grid:oinstall /home/grid/.kshrc
 sudo lxc-attach -n oel$OracleRelease -- chown grid:oinstall /home/grid/.bash_logout
 sudo lxc-attach -n oel$OracleRelease -- chown grid:oinstall /home/grid/.
+sudo lxc-attach -n oel$OracleRelease -- yum -y install net-tools bind-utils ntp
 
 echo ''  
 echo "=============================================="
@@ -290,7 +291,38 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Next script to run: anylinux-services-4.sh     "
+echo "Enabling LXC NTP service...                   "
+echo "=============================================="
+echo ''
+
+sudo lxc-attach -n oel$OracleRelease -- chmod +x /etc/systemd/system/ntp.service
+sudo lxc-attach -n oel$OracleRelease -- systemctl enable ntp.service
+echo ''
+sudo lxc-attach -n oel$OracleRelease -- service ntp start
+echo ''
+sudo lxc-attach -n oel$OracleRelease -- service ntpd start
+echo ''
+sudo lxc-attach -n oel$OracleRelease -- service ntp status
+echo ''
+sudo lxc-attach -n oel$OracleRelease -- chkconfig ntp on
+sudo lxc-attach -n oel$OracleRelease -- chkconfig ntpd on
+
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
+echo "Enabled LXC NTP service.                      "
+echo "=============================================="
+
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
+echo "Next script to run: orabuntu-services-4.sh    "
 echo "=============================================="
 
 sleep 5

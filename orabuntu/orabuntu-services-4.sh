@@ -26,7 +26,7 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Script:  anylinux-services-4.sh NumCon          "
+echo "Script:  orabuntu-services-4.sh NumCon        "
 echo "=============================================="
 echo ''
 echo "=============================================="
@@ -171,31 +171,54 @@ sleep 5
 
 while [ $i -le "$NewHighestContainerIndex" ]
 do
-echo "Clone Container Name = $ContainerPrefix$i"
+	echo "Clone Container Name = $ContainerPrefix$i"
 
-# GLS 20160707 updated to use lxc-copy instead of lxc-clone for Ubuntu 16.04
-# GLS 20160707 continues to use lxc-clone for Ubuntu 15.04 and 15.10
-function GetUbuntuVersion {
-cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -f2 -d'='
-}
-UbuntuVersion=$(GetUbuntuVersion)
-# GLS 20160707
+	# GLS 20160707 updated to use lxc-copy instead of lxc-clone for Ubuntu 16.04
+	# GLS 20160707 continues to use lxc-clone for Ubuntu 15.04 and 15.10
+	function GetUbuntuVersion {
+	cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -f2 -d'='
+	}
+	UbuntuVersion=$(GetUbuntuVersion)
+	# GLS 20160707
 
-if [ $UbuntuVersion = '15.10' ] || [ $UbuntuVersion = '15.04' ]
-then
-sudo lxc-clone -o oel$OracleRelease -n $ContainerPrefix$i
-fi
-if [ $UbuntuVersion = '16.04' ]
-then
-sudo lxc-copy -n oel$OracleRelease -N $ContainerPrefix$i
-fi
+	if [ $UbuntuVersion = '15.10' ] || [ $UbuntuVersion = '15.04' ]
+	then
+		sudo lxc-clone -o oel$OracleRelease -n $ContainerPrefix$i
+	fi
 
-sudo sed -i "s/oel$OracleRelease/$ContainerPrefix$i/g" /var/lib/lxc/$ContainerPrefix$i/config
-sudo sed -i "s/\.10/\.$i/g" /var/lib/lxc/$ContainerPrefix$i/config
-sudo sed -i 's/sx1/sw1/g' /var/lib/lxc/$ContainerPrefix$i/config
-function GetHostName (){ echo $ContainerPrefix$i\1; }
-HostName=$(GetHostName)
-sudo sed -i "s/$HostName/$ContainerPrefix$i/" /var/lib/lxc/$ContainerPrefix$i/rootfs/etc/sysconfig/network
+	if [ $UbuntuVersion = '16.04' ]
+	then
+		sudo lxc-copy -n oel$OracleRelease -N $ContainerPrefix$i
+	fi
+
+	sudo sed -i "s/oel$OracleRelease/$ContainerPrefix$i/g" /var/lib/lxc/$ContainerPrefix$i/config
+	sudo sed -i "s/\.10/\.$i/g" /var/lib/lxc/$ContainerPrefix$i/config
+	sudo sed -i 's/sx1/sw1/g' /var/lib/lxc/$ContainerPrefix$i/config
+	function GetHostName (){ echo $ContainerPrefix$i\1; }
+	HostName=$(GetHostName)
+	sudo sed -i "s/$HostName/$ContainerPrefix$i/" /var/lib/lxc/$ContainerPrefix$i/rootfs/etc/sysconfig/network
+
+	sudo sh -c "echo '#!/bin/bash'						>  /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '# Start lxc container after required networks are up'	>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo 'switches='sw1''					>> /etc/network/openvswitch/strt_ora73c10.sh"
+	sudo sh -c "echo 'm=0'							>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo 'for i in \$switches'					>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo 'do'							>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '	sudo ip link | grep $i >/dev/null 2>&1'		>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '	while [ $? -ne 0 ]'				>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '	do'						>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '		m=$((m+1))'				>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '		if [ $m -eq 1000 ]'			>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '		then'					>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '			exit'				>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '		fi'					>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '		sudo ip link | grep $i >/dev/null 2>&1'	>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '	done'						>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo 'done'							>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo 'sudo lxc-start -n $ContainerPrefix$i >/dev/null 2>&1'	>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo chmod +x /etc/network/openvswitch/strt_$ContainerPrefix$i.sh
+	sudo sed -i "s/sw1/'sw1'/" /etc/network/openvswitch/strt_$ContainerPrefix$i.sh
+	sudo sh -c "echo '/etc/network/openvswitch/strt_$ContainerPrefix$i.sh 2>&1 > /etc/network/openvswitch/strt_$ContainerPrefix$i.log' >> /etc/network/if-up.d/orabuntu-lxc-net"
 i=$((i+1))
 done
 
@@ -258,7 +281,7 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Next script to run: anylinux-services-5.sh      "
+echo "Next script to run: orabuntu-services-5.sh    "
 echo "=============================================="
 
 sleep 5
