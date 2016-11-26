@@ -55,59 +55,63 @@ then
 
 	clear
 
-	echo ''
-	echo '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-	echo '"We have just folded space from Ix. Many machines on Ix. New machines. Better than those on Richesse."'
-	echo '                                                                                                      '
-	echo '                         -- Third Stage Navigator, from DUNE by Frank Herbert                         '
-	echo '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-	echo ''
+	if [ ! -f /etc/uekulele-release ]
+	then
+		echo ''
+		echo '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+		echo '"We have just folded space from Ix. Many machines on Ix. New machines. Better than those on Richesse."'
+		echo '                                                                                                      '
+		echo '                         -- Third Stage Navigator, from DUNE by Frank Herbert                         '
+		echo '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+		echo ''
+	
 
-	sleep 8
+		sleep 8
 
-	clear
+		clear
 
-	echo ''
-	echo "=============================================="
-	echo "References and Acknowledgements orabuntu-lxc  "
-	echo "=============================================="
-	echo ''
-	echo 'Gilbert Standen' 
-	echo 'gilstanden@hotmail.com'
-	echo ''
-	echo "=============================================="
-	echo "The Orabuntu-LXC Github Project:              "
-	echo "https://github.com/gstanden/orabuntu-lxc      " 
-	echo "=============================================="
-	echo ''
-	echo 'The online publications of many authors and bloggers helped to make orabuntu-lxc possible.'
-	echo 'Links may go stale.  I will try to keep them up to date if possible.'
-	echo ''
-	echo "1. 'The Unknown Posters' (i.e. StackExchangers, StackOverflowers, UnixStackExchangers, etc.)"
-	echo "2. 'VirtualBox' Jean Jacques Sarton https://www.virtualbox.org/wiki/Advanced_Networking_Linux"
-	echo "3. 'The New Stack' Venu Murthy http://thenewstack.io/solving-a-common-beginners-problem-when-pinging-from-an-openstack-instance/"
-	echo "4. 'Big Dino' Lee Hutchinson https://blog.bigdinosaur.org/running-bind9-and-isc-dhcp/"
-	echo "5. 'Techie in IT' Sokratis Galiatsis https://sokratisg.net/2012/03/31/ubuntu-precise-dnsmasq/"
-	echo "6. 'OpenvSwitch Examples' Jaret Pfluger https://github.com/jpfluger/examples/blob/master/ubuntu-14.04/openvswitch.md"
-	echo "7. 'Howto run local scripts on systemstartup and/or shutdown' xaos52 (The Good Doctor) http://crunchbang.org/forums/viewtopic.php?id=14453"
-	echo ''
-	echo "Acknowledgements"
-	echo ''
-	echo "1.  Mary Standen		(mother) (1934-2016)"
-	echo "2.  Yelena Belyaeva-Standen 	(spouse)"
-	echo "3.  Allen the Cat 		(cat)"
-	echo ''
-	echo "For their patience and support during the long hours worked in the past and the long hours to be worked in the future for Orabuntu-LXC."
-	echo "Mary Standen my mother always raised me to put mission first and work first."
-	echo ''
-	echo "=============================================="
-	echo "References and Acknowledgements End           "
-	echo "=============================================="
-	echo ''
+		echo ''
+		echo "=============================================="
+		echo "References and Acknowledgements orabuntu-lxc  "
+		echo "=============================================="
+		echo ''
+		echo 'Gilbert Standen' 
+		echo 'gilstanden@hotmail.com'
+		echo ''
+		echo "=============================================="
+		echo "The Orabuntu-LXC Github Project:              "
+		echo "https://github.com/gstanden/orabuntu-lxc      " 
+		echo "=============================================="
+		echo ''
+		echo 'The online publications of many authors and bloggers helped to make orabuntu-lxc possible.'
+		echo 'Links may go stale.  I will try to keep them up to date if possible.'
+		echo ''
+		echo "1. 'The Unknown Posters' (i.e. StackExchangers, StackOverflowers, UnixStackExchangers, etc.)"
+		echo "2. 'VirtualBox' Jean Jacques Sarton https://www.virtualbox.org/wiki/Advanced_Networking_Linux"
+		echo "3. 'The New Stack' Venu Murthy http://thenewstack.io/solving-a-common-beginners-problem-when-pinging-from-an-openstack-instance/"
+		echo "4. 'Big Dino' Lee Hutchinson https://blog.bigdinosaur.org/running-bind9-and-isc-dhcp/"
+		echo "5. 'Techie in IT' Sokratis Galiatsis https://sokratisg.net/2012/03/31/ubuntu-precise-dnsmasq/"
+		echo "6. 'OpenvSwitch Examples' Jaret Pfluger https://github.com/jpfluger/examples/blob/master/ubuntu-14.04/openvswitch.md"
+		echo "7. 'Howto run local scripts on systemstartup and/or shutdown' xaos52 (The Good Doctor) http://crunchbang.org/forums/viewtopic.php?id=14453"
+		echo ''
+		echo "Acknowledgements"
+		echo ''
+		echo "1.  Mary Standen		(mother) (1934-2016)"
+		echo "2.  Yelena Belyaeva-Standen 	(spouse)"
+		echo "3.  Allen the Cat 		(cat)"
+		echo ''
+		echo "For their patience and support during the long hours worked in the past and the long hours to be worked in the future for Orabuntu-LXC."
+		echo "Mary Standen my mother always raised me to put mission first and work first."
+		echo ''
+		echo "=============================================="
+		echo "References and Acknowledgements End           "
+		echo "=============================================="
+		echo ''
+	
+		sleep 10
 
-	sleep 10
-
-	clear
+		clear
+	fi
 fi
 
 echo ''
@@ -119,14 +123,14 @@ echo ''
 MajorRelease=$1
 if [ -z $1 ]
 then
-MajorRelease=6
+MajorRelease=7
 fi
 echo 'Oracle Linux MajorRelease = '$MajorRelease
 
 PointRelease=$2
 if [ -z $2 ]
 then
-PointRelease=7
+PointRelease=3
 fi
 echo 'Oracle Linux PointRelease = '$PointRelease
 

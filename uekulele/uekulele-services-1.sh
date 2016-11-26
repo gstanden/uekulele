@@ -1918,19 +1918,63 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Create the LXC oracle container...            "
+echo "Create RSA key if it does not already exist   "
 echo "=============================================="
 echo ''
 
-sudo lxc-create -n oel$OracleRelease -t oracle -- --release=$OracleVersion
+if [ ! -e ~/.ssh/id_rsa.pub ]
+then
+# ssh-keygen -t rsa
+ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''
+fi
+
+if [ -e ~/.ssh/known_hosts ]
+then
+rm ~/.ssh/known_hosts
+fi
+
+if [ -e ~/.ssh/authorized_keys ]
+then
+rm ~/.ssh/authorized_keys
+fi
+
+touch ~/.ssh/authorized_keys
+
+if [ -e ~/.ssh/id_rsa.pub ]
+then
+function GetAuthorizedKey {
+cat ~/.ssh/id_rsa.pub
+}
+AuthorizedKey=$(GetAuthorizedKey)
+
+echo ''
+echo 'Authorized Key:'
+echo ''
+echo $AuthorizedKey 
+echo ''
+fi
+
+function CheckAuthorizedKeys {
+grep -c "$AuthorizedKey" ~/.ssh/authorized_keys
+}
+AuthorizedKeys=$(CheckAuthorizedKeys)
+
+echo "Results of grep = $AuthorizedKeys"
+
+if [ "$AuthorizedKeys" -eq 0 ]
+then
+cat  ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+fi
+
+echo ''
+echo 'cat of authorized_keys'
+echo ''
+cat ~/.ssh/authorized_keys
 
 echo ''
 echo "=============================================="
-echo "Create the LXC oracle container complete      "
-echo "(Passwords are the same as the usernames)     "
-echo "Sleeping 5 seconds...                         "
+echo "Create RSA key completed                      "
 echo "=============================================="
-echo ''
 
 sleep 5
 

@@ -272,58 +272,65 @@ then
 
 			clear
 
-			echo ''
-			echo "=========================================================================================="
-			echo "Please answer 'Y' below to signify that you understand that the above fresh install       "
-			echo "OS/physical and OS/VM combination(s) are the only combinations that have been tested with "
-			echo "this software.                                                                            "
-			echo "                                                                                          "
-			echo "By answering 'Y' you also understand that while every effort has been made to certify this"
-			echo "software on the OS/VM and OS/physical combos above, the above-listed combos do not        "
-			echo "constitute a guarantee of results YMMV.                                                   "
-			echo "                                                                                          "
-			echo "It is recommended to first create a fresh VM of one of the supported versions listed above"
-			echo "and test out this software on the VM before doing an install on a baremetal host.  This is"
-			echo "so that you can get experience with this software first on a VM.  The installation of this"
-			echo "software takes about 15-20  minutes so such a VM test is fairly low-cost in terms of time "
-			echo "and effort on your part (of course building the VM takes a little while too).             "
-			echo "                                                                                          "
-			echo "You can choose to answer 'Y' below also if you wish to try this software on an OS/VM or   "
-			echo "OS/physical combination that is not listed above understanding that there may be results  "
-			echo "that are unexpected in that case.                                                         "
-			echo "                                                                                          "
-			echo "Note that this software was designed to be as minimally invasive as possible and so every "
-			echo "effort has been made to minimize the risk of loss of service(s) due to installing this    "
-			echo "software.  However not all outcomes on all systems can be anticipated if installing on a  "
-			echo "system that has been running for awhile and has been customized or if installing on an OS "
-			echo "not listed above.                                                                         "
-			echo "                                                                                          "
-			echo "If you have a Linux OS that you would like to add to the list of tested systems above, you"
-			echo "are free to fork this software under the GNU3 license which governs this open source      "
-			echo "software, or you can send an email to:                                                    "
-			echo "                                                                                          " 
-			echo "gilstanden@hotmail.com                                                                    "
-			echo "                                                                                          "
-			echo "and request that support for that OS be developed into this software and also supported.  "
-			echo "=========================================================================================="	
-			echo "                                                                                          "
-			echo "=========================================================================================="	
-			echo "                                                                                          " 
-			read -e -p "Accept installation terms? [Y/N]        " -i "Y" InstallationTerms
-			echo "                                                                                          "
-			echo "=========================================================================================="
-			echo ''
+			if [ ! -f /etc/orabuntu-lxc-terms ]
+			then
+				echo ''
+				echo "=========================================================================================="
+				echo "Please answer 'Y' below to signify that you understand that the above fresh install       "
+				echo "OS/physical and OS/VM combination(s) are the only combinations that have been tested with "
+				echo "this software.                                                                            "
+				echo "                                                                                          "
+				echo "By answering 'Y' you also understand that while every effort has been made to certify this"
+				echo "software on the OS/VM and OS/physical combos above, the above-listed combos do not        "
+				echo "constitute a guarantee of results YMMV.                                                   "
+				echo "                                                                                          "
+				echo "It is recommended to first create a fresh VM of one of the supported versions listed above"
+				echo "and test out this software on the VM before doing an install on a baremetal host.  This is"
+				echo "so that you can get experience with this software first on a VM.  The installation of this"
+				echo "software takes about 15-20  minutes so such a VM test is fairly low-cost in terms of time "
+				echo "and effort on your part (of course building the VM takes a little while too).             "
+				echo "                                                                                          "
+				echo "You can choose to answer 'Y' below also if you wish to try this software on an OS/VM or   "
+				echo "OS/physical combination that is not listed above understanding that there may be results  "
+				echo "that are unexpected in that case.                                                         "
+				echo "                                                                                          "
+				echo "Note that this software was designed to be as minimally invasive as possible and so every "
+				echo "effort has been made to minimize the risk of loss of service(s) due to installing this    "
+				echo "software.  However not all outcomes on all systems can be anticipated if installing on a  "
+				echo "system that has been running for awhile and has been customized or if installing on an OS "
+				echo "not listed above.                                                                         "
+				echo "                                                                                          "
+				echo "If you have a Linux OS that you would like to add to the list of tested systems above, you"
+				echo "are free to fork this software under the GNU3 license which governs this open source      "
+				echo "software, or you can send an email to:                                                    "
+				echo "                                                                                          " 
+				echo "gilstanden@hotmail.com                                                                    "
+				echo "                                                                                          "
+				echo "and request that support for that OS be developed into this software and also supported.  "
+				echo "=========================================================================================="	
+				echo "                                                                                          "
+				echo "=========================================================================================="	
+				echo "                                                                                          " 
+				read -e -p "Accept installation terms? [Y/N]     " -i "Y" InstallationTerms
+				echo "                                                                                          "
+				echo "=========================================================================================="
+				echo ''
+			else
+				InstallationTerms=Y
+			fi
 
 			sleep 5
 
 			clear
 
-			if [ $InstallationTerms = 'y' ] || [ $InstallationTerms = 'Y' ]
+			if [ $InstallationTerms = 'y' ] || [ $InstallationTerms = 'Y' ] || [ -f /etc/orabuntu-lxc-terms ]
 			then
 				echo ''
 				echo "=============================================="	
 				echo "Terms Accepted. Proceeding with Installation. "
-				echo "=============================================="	
+				echo "=============================================="
+	
+				sudo su -c "echo 'Orabuntu-LXC terms accepted' > /etc/orabuntu-lxc-terms"
 			else
 				echo ''
 				echo "=============================================="	
@@ -436,7 +443,7 @@ then
 		then
  			echo ''
 			echo "=============================================="
-			echo "Uekulele $LinuxFlavor LXC Automation on VM... "
+			echo "Uekulele $LinuxFlavor LXC Install on VM...    "
 			echo "=============================================="
 			echo ''
 
@@ -444,11 +451,37 @@ then
 
 			clear
 
-			~/Downloads/uekulele-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
-			~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
-			~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
-			~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease $NameServer
-			~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
+			if [ -f /etc/orabuntu-lxc-terms ] && [ -f /etc/uekulele-release ]
+			then
+				echo ''
+				echo "============================================================================================================="	
+				echo "                                                                                                             " 
+				read -e -p "Are you creating additional containers on an existing Orabuntu-LXC Uekulele system? [Y/N]        " -i "Y" CloningAdditional
+				echo "                                                                                                             "
+				echo "============================================================================================================="
+				echo ''
+
+				sleep 5
+
+				clear
+
+				if [ $CloningAdditional = 'y' ] || [ $CloningAdditional = 'Y' ]
+				then
+					~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
+					~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
+					~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon $NameServer
+					~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
+				fi
+			fi
+
+			if [ ! -f /etc/uekulele-release ]
+			then
+				~/Downloads/uekulele-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
+				~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
+				~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
+				~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon $NameServer
+				~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
+			fi
 
  			echo ''
 			echo "=============================================="
@@ -456,24 +489,53 @@ then
 			echo "=============================================="
 
 			sleep 5
-
  		else 
 			echo ''
-			echo "==============================================    "
-			echo "Uekulele $LinuxFlavor Automation on physical host."
-			echo "==============================================    "
+			echo "=============================================="
+			echo "Uekulele $LinuxFlavor LXC install on baremetal"
+			echo "=============================================="
 			echo ''
 
 			sleep 5
 
 			clear
 
-			~/Downloads/uekulele-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
-			~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
-			~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
-			~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease $NameServer
-			~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
+			if [ -f /etc/orabuntu-lxc-terms ] && [ -f /etc/uekulele-release ]
+			then
+				echo ''
+				echo "============================================================================================================="	
+				echo "                                                                                                             " 
+				read -e -p "Are you cloning additional containers on an existing Orabuntu-LXC Uekulele system? [Y/N]        " -i "Y" CloningAdditional
+				echo "                                                                                                             "
+				echo "============================================================================================================="
+				echo ''
 
+				sleep 5
+
+				clear
+
+				if [ $CloningAdditional = 'y' ] || [ $CloningAdditional = 'Y' ]
+				then
+					~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
+					~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
+					~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon $NameServer
+					~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
+				fi
+			fi
+		
+			if [ ! -f /etc/uekulele-release ]
+			then
+				~/Downloads/uekulele-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
+				~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
+				~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
+				~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon $NameServer
+				~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
+			fi
+
+			sleep 5
+
+			clear
+			
 			echo ''
 			echo "=============================================="
 			echo "Uekulele $LinuxFlavor Automation complete.    "

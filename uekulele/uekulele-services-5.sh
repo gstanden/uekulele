@@ -159,7 +159,7 @@ do
 	while [ "$PublicIPIterative" != 10207 ] && [ "$i" -le 10 ]
 	do
 		echo "Waiting for $j Public IP to come up..."
-		sleep 12
+		sleep 20
 		PublicIPIterative=$(CheckPublicIPIterative)
 		if [ $i -eq 5 ]
 		then

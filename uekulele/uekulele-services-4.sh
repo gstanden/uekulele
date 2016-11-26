@@ -220,8 +220,8 @@ do
 	sudo sh -c "echo '  exec lxc-stop -n $ContainerPrefix$i > /dev/null 2>&1'		>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
 	sudo sh -c "echo '}'									>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
 	sudo sh -c "echo ''									>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
-	sudo sh -c "echo 'case $1 in'								>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
-	sudo sh -c "echo '  start|stop) "$1" ;;'						>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo 'case \$1 in'								>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
+	sudo sh -c "echo '  start|stop) \"\$1\" ;;'						>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
 	sudo sh -c "echo 'esac'									>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
 
 	sudo chmod +x /etc/network/openvswitch/strt_$ContainerPrefix$i.sh
