@@ -81,7 +81,7 @@ then
  		sudo yum provides lxc | sed '/^\s*$/d' | grep Repo | sort -u
 		cd /home/ubuntu/Downloads/uekulele-master
 		sudo yum -y install debootstrap perl libvirt
-		sudo yum -y install lxc libcap-devel libcgroup busybox wget bridge-utils
+		sudo yum -y install lxc libcap-devel libcgroup wget bridge-utils
 
 		echo ''
 		echo "=============================================="
@@ -148,12 +148,12 @@ then
 		echo "LXC version displayed.                        "
 		echo "=============================================="
 		echo ''
+	
+		sleep 5
 
+
+		clear
 	fi
-
-	sleep 5
-
-	clear
 
 	function GetLxcVersion {
 	lxc-create --version | sed 's/\.//g'
@@ -192,8 +192,20 @@ then
 		echo ''
 
 		sleep 5
+		
+		sudo touch /etc/rpm/macros
+		function CheckMacrosFile {
+			cat /etc/rpm/macros | grep _unpackaged_files_terminate_build | sort -u | grep -c 0
+		}
+		MacrosFile=$(CheckMacrosFile)
 
-		sudo yum -y install rpm-build wget openssl-devel gcc make docbook2X asciidoc xmlto docbook automake graphviz
+		if [ $MacrosFile -eq 0 ]
+		then
+			sudo sh -c "echo '%_unpackaged_files_terminate_build 0' >> /etc/rpm/macros"
+		fi
+
+		rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild' -ba lxc.spec
+		sudo yum -y install rpm-build wget openssl-devel gcc make docbook2X xmlto docbook automake graphviz
 		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
 		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
 		wget https://linuxcontainers.org/downloads/lxc/lxc-2.0.5.tar.gz
@@ -209,24 +221,57 @@ then
 
 		clear
 
-		echo ''
-		echo "=============================================="
-		echo "Untar source code and build LXC RPM...        "
-		echo "=============================================="
-		echo ''
+		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+		touch marker.rpm
 
-		sleep 5
+		function GetLXCPackageCount {
+			rpm -qa | grep -c lxc
+		}
+		LXCPackageCount=$(GetLXCPackageCount)
+		while [ $LXCPackageCount -lt 5 ]
+		do	
+			echo ''
+			echo "=============================================="
+			echo "Untar source code and build LXC RPM...        "
+			echo "=============================================="
+			echo ''
 
-		tar -zxvf lxc-2.0.5.tar.gz
-		cp -p lxc-2.0.5/lxc.spec ~/Downloads/uekulele-master/uekulele/lxc/.
-		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
-		sudo sh -c "echo '%_unpackaged_files_terminate_build 0' >> /etc/rpm/macros"
-		rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild' -ba lxc.spec
+			sleep 5
 
-		echo ''
-		echo "=============================================="
-		echo "LXC RPM built.                                "
-		echo "=============================================="
+			sudo yum -y install rpm-build wget openssl-devel gcc make docbook2X xmlto docbook automake graphviz
+			mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+			cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+			wget https://linuxcontainers.org/downloads/lxc/lxc-2.0.5.tar.gz
+			mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+			cp -p lxc-2.0.5.tar.gz /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/SOURCES/.
+			tar -zxvf lxc-2.0.5.tar.gz
+			cp -p lxc-2.0.5/lxc.spec /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/.
+			cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+	
+			function CheckMacrosFile {
+				cat /etc/rpm/macros | grep _unpackaged_files_terminate_build | sort -u | grep -c 0
+			}
+			MacrosFile=$(CheckMacrosFile)
+
+			if [ $MacrosFile -eq 0 ]
+			then
+				sudo sh -c "echo '%_unpackaged_files_terminate_build 0' >> /etc/rpm/macros"
+			fi
+			rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild' -ba lxc.spec
+			cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+			sudo yum -y localinstall lxc* > /dev/null 2>&1
+			LXCPackageCount=$(GetLXCPackageCount)
+			cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+		done
+		
+		if [ $LXCPackageCount -eq 5 ]
+		then
+			echo ''
+			echo "=============================================="
+			echo "LXC RPMs built.                               "
+			echo "=============================================="
+		fi
 
 		sleep 5
 
@@ -238,7 +283,7 @@ then
 		echo "=============================================="
 		echo ''
 
-		cd ~/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
 		sudo yum -y localinstall lxc*
 
 		echo ''
@@ -279,6 +324,7 @@ then
 		clear
 	fi
 
+	echo ''
 	echo "=============================================="
 	echo "Delete the etc/uekulele-release file if       "
 	echo "re-running orabuntu-lxc from scratch.         "
@@ -317,6 +363,10 @@ then
 	SwitchList='sw1 sx1'
 	for k in $SwitchList
 	do
+		echo "Display rules for OpenvSwitch $k..."
+		echo ''
+		sudo iptables -S | grep $k
+		echo ''
 		function CheckRuleExist {
 		sudo iptables -S | grep -c $k
 		}
@@ -349,6 +399,21 @@ then
 			SearchString=$(FormatSearchString) 
 			SwitchRuleCount=$(GetSwitchRuleCount)
 			RuleExist=$(CheckRuleExist)
+			echo "Rules remaining to be deleted for OpenvSwitch $k:"
+			echo ''
+			function GetIptablesRulesCount {
+				sudo iptables -S | grep -c $k
+			}
+			IptablesRulesCount=$(GetIptablesRulesCount)
+			if [ $IptablesRulesCount -gt 0 ]
+			then
+				sudo iptables -S | grep $k
+			else
+				echo "=============================================="
+				echo "All iptables switch $k rules deleted.         "
+				echo "=============================================="
+			fi
+			echo ''
 		done
 	done
 
@@ -360,7 +425,7 @@ then
 	echo "=============================================="
 	echo ''
 
-	sleep 5
+	sleep 10
 
 	clear
 
@@ -461,25 +526,18 @@ then
 		clear
 
 		function CheckContainersExist {
-		sudo ls /var/lib/lxc | more | sed 's/$/ /' | tr -d '\n' | sed 's/  */ /g'
+		sudo ls /var/lib/lxc | grep -v $NameServer | more | sed 's/$/ /' | tr -d '\n' | sed 's/  */ /g'
 		}
 		ContainersExist=$(CheckContainersExist)
 
-		function CheckSeedContainersExist {
-		sudo ls /var/lib/lxc | more | grep oel | sed 's/$/ /' | tr -d '\n' | sed 's/  */ /g'
-		}
-		SeedContainersExist=$(CheckSeedContainersExist)
-
 		echo ''
-		echo "=============================================="
-		read -e -p "Delete Only Container oel$OracleRelease? [Y/N]    " -i "Y" DestroySeedContainerOnly
-		echo "=============================================="
+		echo "==============================================           "
+		read -e -p "Delete ALL Containers EXCEPT $NameServer? [Y/N]    " -i "Y" DestroyAllContainers
+		echo "==============================================           "
 		echo ''
 
-		if [ $DestroySeedContainerOnly = 'Y' ] || [ $DestroySeedContainerOnly = 'y' ]
+		if [ $DestroyAllContainers = 'Y' ] || [ $DestroyContainers = 'y' ]
 		then
-			DestroyContainers=$(CheckSeedContainersExist)
-		else
 			DestroyContainers=$(CheckContainersExist)
 		fi
 
@@ -518,17 +576,11 @@ then
 	echo "=============================================="
 	echo "         Container Check completed.           "
 	echo "=============================================="
+
+	sleep 5
+
+	clear
 fi
-
-echo ''
-echo "=============================================="
-echo "Package Installation...                       "
-echo "=============================================="
-echo ''
-
-sleep 5
-
-clear
 
 which lxc-ls > /dev/null 2>&1
 if [ $? -ne 0 ]
@@ -547,7 +599,7 @@ then
 	wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 	sudo rpm -ivh epel-release-latest-7.noarch.rpm 
 	sudo yum -y install debootstrap perl libvirt
-	sudo yum -y install lxc libcap-devel libcgroup busybox wget bridge-utils
+	sudo yum -y install lxc libcap-devel libcgroup wget bridge-utils
 
 	echo ''
 	echo "=============================================="
@@ -602,15 +654,16 @@ then
 	echo "=============================================="
 	echo "Install LXC complete.                         "
 	echo "=============================================="
-fi
+
 	sleep 5
 
 	clear
+fi
 
-	function GetLxcVersion {
-	lxc-create --version | sed 's/\.//g'
-	}
-	LxcVersion=$(GetLxcVersion)
+function GetLxcVersion {
+lxc-create --version | sed 's/\.//g'
+}
+LxcVersion=$(GetLxcVersion)
 
 if [ $LxcVersion -lt 205 ]	
 then
@@ -620,7 +673,7 @@ then
 	echo "=============================================="
 
 	sleep 5
-
+	
 	clear
 
 	echo ''
@@ -631,7 +684,18 @@ then
 
 	sleep 5
 
-	sudo yum -y install rpm-build wget openssl-devel gcc make docbook2X asciidoc xmlto docbook automake graphviz
+	sudo touch /etc/rpm/macros
+	function CheckMacrosFile {
+		cat /etc/rpm/macros | grep _unpackaged_files_terminate_build | sort -u | grep -c 0
+	}
+	MacrosFile=$(CheckMacrosFile)
+
+	if [ $MacrosFile -eq 0 ]
+	then
+		sudo sh -c "echo '%_unpackaged_files_terminate_build 0' >> /etc/rpm/macros"
+	fi
+
+	sudo yum -y install rpm-build wget openssl-devel gcc make docbook2X xmlto docbook automake graphviz
 	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
 	cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
 	wget https://linuxcontainers.org/downloads/lxc/lxc-2.0.5.tar.gz
@@ -647,24 +711,59 @@ then
 
 	clear
 
-	echo ''
-	echo "=============================================="
-	echo "Untar source code and build LXC RPM...        "
-	echo "=============================================="
-	echo ''
+	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+	touch marker.rpm
 
-	sleep 5
+	function GetLXCPackageCount {
+		rpm -qa | grep -c lxc
+	}
+	LXCPackageCount=$(GetLXCPackageCount)
 
-	tar -zxvf lxc-2.0.5.tar.gz
-	cp -p lxc-2.0.5/lxc.spec ~/Downloads/uekulele-master/uekulele/lxc/.
-	cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
-	sudo sh -c "echo '%_unpackaged_files_terminate_build 0' >> /etc/rpm/macros"
-	rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild' -ba lxc.spec
+	while [ $LXCPackageCount -lt 5 ]
+	do	
+		echo ''
+		echo "=============================================="
+		echo "Untar source code and build LXC RPM...        "
+		echo "=============================================="
+		echo ''
 
-	echo ''
-	echo "=============================================="
-	echo "LXC RPM built.                                "
-	echo "=============================================="
+		sleep 5
+
+		sudo yum -y install rpm-build wget openssl-devel gcc make docbook2X xmlto docbook automake graphviz
+		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+		wget https://linuxcontainers.org/downloads/lxc/lxc-2.0.5.tar.gz
+		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+		cp -p lxc-2.0.5.tar.gz /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/SOURCES/.
+		tar -zxvf lxc-2.0.5.tar.gz
+		cp -p lxc-2.0.5/lxc.spec /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/.
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+	
+		function CheckMacrosFile {
+			cat /etc/rpm/macros | grep _unpackaged_files_terminate_build | sort -u | grep -c 0
+		}
+		MacrosFile=$(CheckMacrosFile)
+
+		if [ $MacrosFile -eq 0 ]
+		then
+			sudo sh -c "echo '%_unpackaged_files_terminate_build 0' >> /etc/rpm/macros"
+		fi
+	
+		rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild' -ba lxc.spec
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+		sudo yum -y localinstall lxc* > /dev/null 2>&1
+		LXCPackageCount=$(GetLXCPackageCount)
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc
+	done
+		
+	if [ $LXCPackageCount -eq 5 ]
+	then
+		echo ''
+		echo "=============================================="
+		echo "LXC RPMs built.                               "
+		echo "=============================================="
+	fi
 
 	sleep 5
 
@@ -676,7 +775,7 @@ then
 	echo "=============================================="
 	echo ''
 
-	cd ~/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/lxc/rpmbuild/RPMS/x86_64
 	sudo yum -y localinstall lxc*
 
 	echo ''
@@ -728,66 +827,85 @@ then
 	echo "=============================================="
 	echo "Upgrade LXC from Source complete.             "
 	echo "=============================================="
-fi
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
-echo "Build OpenvSwitch from Source on Oracle Linux "
-echo "=============================================="
-
-sleep 5
-
-clear
-
-which ovs-vsctl > /dev/null 2>&1
-Built=$?
-while [ $Built -ne 0 ]
-do
-	echo ''
-	echo "=============================================="
-	echo "Install required packages and prepare...      "
-	echo "=============================================="
-	echo ''
 
 	sleep 5
 
-	sudo yum -y install rpm-build wget openssl-devel gcc make
-	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
-	cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
-	wget http://openvswitch.org/releases/openvswitch-2.5.1.tar.gz
-	mkdir -p ~/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-	cp -p openvswitch-2.5.1.tar.gz /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/SOURCES/.
+	clear
+fi
 
+which ovs-vsctl > /dev/null 2>&1
+if [ $? -ne 0 ]
+then
 	echo ''
 	echo "=============================================="
-	echo "Packages and preparations complete.           "
+	echo "Build OpenvSwitch from Source...              "
 	echo "=============================================="
 
 	sleep 5
 
 	clear
 
-	echo ''
-	echo "=============================================="
-	echo "Untar source code and build openvswitch rpm..."
-	echo "=============================================="
-	echo ''
+	mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/RPMS/x86_64
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/RPMS/x86_64
+	touch marker-2.rpm
 
-	sleep 5
+	function GetOVSPackageCount {
+		rpm -qa | grep -c openvswitch
+	}
+	OVSPackageCount=$(GetOVSPackageCount)
 
-	tar -zxvf openvswitch-2.5.1.tar.gz
-	cp -p openvswitch-2.5.1/rhel/*.spec ~/Downloads/uekulele-master/uekulele/openvswitch/.
-	cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
-	rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild' -ba openvswitch.spec
+	while [ $OVSPackageCount -lt 2 ]
+	do
+		echo ''
+		echo "=============================================="
+		echo "Install required packages and prepare...      "
+		echo "=============================================="
+		echo ''
 
-	echo ''
-	echo "=============================================="
-	echo "OpenvSWitch RPM built.                        "
-	echo "=============================================="
+		sleep 5
+
+		sudo yum -y install rpm-build wget openssl-devel gcc make
+		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
+		wget http://openvswitch.org/releases/openvswitch-2.5.1.tar.gz
+		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+		cp -p openvswitch-2.5.1.tar.gz /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/SOURCES/.
+
+		echo ''
+		echo "=============================================="
+		echo "Packages and preparations complete.           "
+		echo "=============================================="
+
+		sleep 5
+
+		clear
+
+		echo ''
+		echo "=============================================="
+		echo "Untar source code and build openvswitch rpm..."
+		echo "=============================================="
+		echo ''
+
+		sleep 5
+
+		tar -zxvf openvswitch-2.5.1.tar.gz
+		cp -p openvswitch-2.5.1/rhel/*.spec /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/.
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
+		rpmbuild --define '_topdir /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild' -ba openvswitch.spec
+
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/RPMS/x86_64
+		sudo yum -y localinstall openvswitch* > /dev/null 2>&1
+		OVSPackageCount=$(GetOVSPackageCount)
+		cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch
+	done
+
+	if [ $OVSPackageCount -eq 2 ]
+	then
+		echo ''
+		echo "=============================================="
+		echo "OpenvSWitch RPM built.                        "
+		echo "=============================================="
+	fi
 
 	sleep 5
 
@@ -818,7 +936,7 @@ do
 
 	sleep 5
 
-	cd ~/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/RPMS/x86_64
+	cd /home/ubuntu/Downloads/uekulele-master/uekulele/openvswitch/rpmbuild/RPMS/x86_64
 	sudo yum -y localinstall openvswitch*
 
 	echo ''
@@ -865,22 +983,20 @@ do
 	echo "Test OpenvSwitch complete.                    "
 	echo "=============================================="
 	echo ''
-	which ovs-vsctl > /dev/null 2>&1
-	Built=$?
-done
 
-sleep 5
+	sleep 5
 
-clear
+	clear
 
-echo ''
-echo "=============================================="
-echo "Build OpenvSwitch from Source complete.       "
-echo "=============================================="
+	echo ''
+	echo "=============================================="
+	echo "Build OpenvSwitch from Source complete.       "
+	echo "=============================================="
 
-sleep 5
+	sleep 5
 
-clear
+	clear
+fi
 
 echo ''
 echo "=============================================="
@@ -922,7 +1038,7 @@ RedHatVersion=$(GetRedHatVersion)
 if [ $RedHatVersion = '7' ]
 then
 function CheckPackageInstalled {
-echo 'asciidoc automake bind-utils bridge-utils busybox curl debootstrap docbook docbook2X facter gawk gcc graphviz gzip iotop iptables libcap-devel libcgroup libvirt libvirt-daemon-driver-lxc lxc-2 lxc-debug lxc-devel lxc-libs make net-tools ntp openssh-server openssl-devel openvswitch-2 openvswitch-debug perl rpm rpm-build ruby tar uuid wget which xmlto yum'
+echo 'automake bind-utils bridge-utils curl debootstrap docbook docbook2X facter gawk gcc graphviz gzip iotop iptables libcap-devel libcgroup libvirt libvirt-daemon-driver-lxc lxc-2 lxc-debug lxc-devel lxc-libs make net-tools ntp openssh-server openssl-devel openvswitch-2 openvswitch-debug perl rpm rpm-build ruby tar uuid wget which xmlto yum'
 }
 fi
 
@@ -966,121 +1082,133 @@ sleep 5
 
 clear
 
-# Create LXC DNS DHCP container.
+function CheckNameServerExists {
+	sudo lxc-ls -f | grep -c "$NameServer"
+}
+NameServerExists=$(CheckNameServerExists)
 
-echo ''
-echo "=============================================="
-echo "Create LXC DNS DHCP container...       "
-echo "=============================================="
-echo ''
-
-sudo lxc-create -t download -n nsa -- --dist ubuntu --release xenial --arch amd64
-
-echo ''
-echo "=============================================="
-echo "Create LXC DNS DHCP container complete."
-echo "=============================================="
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
-echo "Install & configure DNS DHCP LXC container... "
-echo "=============================================="
-
-echo ''
-sudo touch /var/lib/lxc/nsa/rootfs/etc/resolv.conf
-sudo sed -i '0,/.*nameserver.*/s/.*nameserver.*/nameserver 8.8.8.8\n&/' /var/lib/lxc/nsa/rootfs/etc/resolv.conf
-sudo lxc-start -n nsa
-echo ''
-
-sleep 5 
-
-clear
-
-echo ''
-echo "=============================================="
-echo "Testing lxc-attach for ubuntu user...         "
-echo "=============================================="
-echo ''
-
-
-sudo lxc-attach -n nsa -- uname -a
-if [ $? -ne 0 ]
+if [ $NameServerExists -eq 0 ]
 then
 	echo ''
 	echo "=============================================="
-	echo "lxc-attach has issue(s).                      "
+	echo "Create LXC DNS DHCP container...       "
 	echo "=============================================="
-else
+	echo ''
+
+	sudo lxc-create -t download -n nsa -- --dist ubuntu --release xenial --arch amd64
+
 	echo ''
 	echo "=============================================="
-	echo "lxc-attach successful.                        "
+	echo "Create LXC DNS DHCP container complete."
 	echo "=============================================="
 
+	sleep 5
+
+	clear
+
+	echo ''
+	echo "=============================================="
+	echo "Install & configure DNS DHCP LXC container... "
+	echo "=============================================="
+
+	echo ''
+	sudo touch /var/lib/lxc/nsa/rootfs/etc/resolv.conf
+	sudo sed -i '0,/.*nameserver.*/s/.*nameserver.*/nameserver 8.8.8.8\n&/' /var/lib/lxc/nsa/rootfs/etc/resolv.conf
+	sudo lxc-start -n nsa
+	echo ''
+
 	sleep 5 
+
+	clear
+
+	echo ''
+	echo "=============================================="
+	echo "Testing lxc-attach for ubuntu user...         "
+	echo "=============================================="
+	echo ''
+
+
+	sudo lxc-attach -n nsa -- uname -a
+	if [ $? -ne 0 ]
+	then
+		echo ''
+		echo "=============================================="
+		echo "lxc-attach has issue(s).                      "
+		echo "=============================================="
+	else
+		echo ''
+		echo "=============================================="
+		echo "lxc-attach successful.                        "
+		echo "=============================================="
+
+		sleep 5 
+	fi
+
+	sleep 5
+
+	clear
+
+	echo ''
+	echo "=============================================="
+	echo "Install bind9 & isc-dhcp-server in container. "
+	echo "Install openssh-server in container.          "
+	echo "=============================================="
+	echo ''
+
+	sudo lxc-attach -n nsa -- sudo apt-get -y update
+	sudo lxc-attach -n nsa -- sudo apt-get -y install bind9 isc-dhcp-server bind9utils dnsutils openssh-server
+
+	sleep 2
+
+	sudo lxc-attach -n nsa -- sudo service isc-dhcp-server start
+	sudo lxc-attach -n nsa -- sudo service bind9 start
+
+	echo ''
+	echo "=============================================="
+	echo "Install bind9 & isc-dhcp-server complete.     "
+	echo "Install openssh-server complete.              "
+	echo "=============================================="
+
+	sleep 5
+
+	clear
+
+	echo ''
+	echo "=============================================="
+	echo "DNS DHCP installed in LXC container.          "
+	echo "=============================================="
+
+	sleep 5
+
+	clear
+
+	echo ''
+	echo "=============================================="
+	echo "Stopping DNS DHCP LXC container...            "
+	echo "=============================================="
+	echo ''
+
+	sudo lxc-stop -n nsa
+	sudo lxc-info -n nsa
+
+	echo ''
+	echo "=============================================="
+	echo "DNS DHCP LXC container stopped.               "
+	echo "=============================================="
+	echo ''
+
+	sleep 5 
+
+	clear
 fi
 
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
-echo "Install bind9 & isc-dhcp-server in container. "
-echo "Install openssh-server in container.          "
-echo "=============================================="
-echo ''
-
-sudo lxc-attach -n nsa -- sudo apt-get -y update
-sudo lxc-attach -n nsa -- sudo apt-get -y install bind9 isc-dhcp-server bind9utils dnsutils openssh-server
-
-sleep 2
-
-sudo lxc-attach -n nsa -- sudo service isc-dhcp-server start
-sudo lxc-attach -n nsa -- sudo service bind9 start
-
-echo ''
-echo "=============================================="
-echo "Install bind9 & isc-dhcp-server complete.     "
-echo "Install openssh-server complete.              "
-echo "=============================================="
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
-echo "DNS DHCP installed in LXC container.          "
-echo "=============================================="
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
-echo "Stopping DNS DHCP LXC container...            "
-echo "=============================================="
-echo ''
-
-sudo lxc-stop -n nsa
-sudo lxc-info -n nsa
-
-echo ''
-echo "=============================================="
-echo "DNS DHCP LXC container stopped.               "
-echo "=============================================="
-echo ''
-
-sleep 5 
-
-clear
-
 # Unpack customized OS host files for Oracle on LXC host server
+
+function CheckNsaExists {
+	sudo lxc-ls -f | grep -c nsa
+}
+NsaExists=$(CheckNsaExists)
+FirstRunNsa=$NsaExists
 
 echo ''
 echo "=============================================="
@@ -1319,131 +1447,130 @@ sleep 10
 
 clear
 
-# Unpack customized OS host files for Oracle on LXC host server
-
-echo ''
-echo "=============================================="
-echo "Unpacking LXC nameserver custom files...      "
-echo "=============================================="
-echo ''
+if [ $NameServerExists -eq 0  ]
+then
+	echo ''
+	echo "=============================================="
+	echo "Unpacking LXC nameserver custom files...      "
+	echo "=============================================="
+	echo ''
 	
-sudo tar -P -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/dns-dhcp-cont.tar --touch
+	sudo tar -P -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/dns-dhcp-cont.tar --touch
 
-echo ''
-echo "=============================================="
-echo "Custom files unpack complete                  "
-echo "=============================================="
+	echo ''
+	echo "=============================================="
+	echo "Custom files unpack complete                  "
+	echo "=============================================="
 
-sleep 10
+	sleep 10
 
-clear
+	clear
 
-echo ''
-echo "=============================================="
-echo "Customize nameserver & domains ...            "
-echo "=============================================="
-echo ''
+	echo ''
+	echo "=============================================="
+	echo "Customize nameserver & domains ...            "
+	echo "=============================================="
+	echo ''
 
-function GetHOSTNAME {
-	echo $HOSTNAME | cut -f1 -d'.'
-}
-HOSTNAME=$(GetHOSTNAME)
+	function GetHOSTNAME {
+		echo $HOSTNAME | cut -f1 -d'.'
+	}
+	HOSTNAME=$(GetHOSTNAME)
 
-# Remove the extra nameserver line used for DNS DHCP setup and add the required nameservers.
+	# Remove the extra nameserver line used for DNS DHCP setup and add the required nameservers.
 	
-	sudo sed -i '/8.8.8.8/d' /var/lib/lxc/nsa/rootfs/etc/resolv.conf
-	sudo sed -i '/nameserver/c\nameserver 10.207.39.2' /var/lib/lxc/nsa/rootfs/etc/resolv.conf
-	sudo sh -c "echo 'nameserver 10.207.29.2' >> /var/lib/lxc/nsa/rootfs/etc/resolv.conf"
-	sudo sh -c "echo 'search orabuntu-lxc.com consultingcommandos.us' >> /var/lib/lxc/nsa/rootfs/etc/resolv.conf"
+		sudo sed -i '/8.8.8.8/d' /var/lib/lxc/nsa/rootfs/etc/resolv.conf
+		sudo sed -i '/nameserver/c\nameserver 10.207.39.2' /var/lib/lxc/nsa/rootfs/etc/resolv.conf
+		sudo sh -c "echo 'nameserver 10.207.29.2' >> /var/lib/lxc/nsa/rootfs/etc/resolv.conf"
+		sudo sh -c "echo 'search orabuntu-lxc.com consultingcommandos.us' >> /var/lib/lxc/nsa/rootfs/etc/resolv.conf"
 
-if [ ! -z $HOSTNAME ]
-then
-	sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.orabuntu-lxc.com
-	sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.orabuntu-lxc.com
-	sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.consultingcommandos.us
-	sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.consultingcommandos.us
+	if [ ! -z $HOSTNAME ]
+	then
+		sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.orabuntu-lxc.com
+		sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.orabuntu-lxc.com
+		sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.consultingcommandos.us
+		sudo sed -i "/baremetal/s/baremetal/$HOSTNAME/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.consultingcommandos.us
+	fi
+
+	if [ -n $NameServer ]
+	then
+		# GLS 20151223 Settable Nameserver feature added
+		# GLS 20161022 Settable Nameserver feature moved into DNS DHCP LXC container.
+		# GLS 20162011 Settable Nameserver feature expanded to include nameserver and both domains.
+		sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.orabuntu-lxc.com
+		sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.orabuntu-lxc.com
+		sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.consultingcommandos.us
+		sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.consultingcommandos.us
+		sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/config
+		sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/etc/hostname
+		sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/etc/hosts
+		sudo sed -i "/nsa/s/nsa/$NameServer/g" /etc/network/openvswitch/strt_nsa.sh
+		sudo mv /var/lib/lxc/nsa /var/lib/lxc/$NameServer
+		sudo mv /etc/network/if-up.d/openvswitch/nsa-pub-ifup-sw1 /etc/network/if-up.d/openvswitch/$NameServer-pub-ifup-sw1
+		sudo mv /etc/network/if-down.d/openvswitch/nsa-pub-ifdown-sw1 /etc/network/if-down.d/openvswitch/$NameServer-pub-ifdown-sw1
+		sudo mv /etc/network/if-up.d/openvswitch/nsa-pub-ifup-sx1 /etc/network/if-up.d/openvswitch/$NameServer-pub-ifup-sx1
+		sudo mv /etc/network/if-down.d/openvswitch/nsa-pub-ifdown-sx1 /etc/network/if-down.d/openvswitch/$NameServer-pub-ifdown-sx1
+		sudo mv /etc/network/openvswitch/strt_nsa.sh /etc/network/openvswitch/strt_$NameServer.sh
+	fi
+
+	if [ -n $Domain1 ]
+	then
+		# GLS 20151221 Settable Domain feature added
+		sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.orabuntu-lxc.com
+		sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.orabuntu-lxc.com
+		sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/resolv.conf
+		sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/NetworkManager/dnsmasq.d/local
+		sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/network/openvswitch/crt_ovs_sw1.sh
+		sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/bind/named.conf.local
+		sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/dhcp/dhcpd.conf
+		sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/network/interfaces
+		sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.orabuntu-lxc.com /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.$Domain1
+		sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.orabuntu-lxc.com /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.$Domain1
+	fi
+
+	if [ -n $Domain2 ]
+	then
+		# GLS 20151221 Settable Domain feature added
+		sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.consultingcommandos.us
+		sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.consultingcommandos.us
+		sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/resolv.conf
+		sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /etc/NetworkManager/dnsmasq.d/local
+		sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /etc/network/openvswitch/crt_ovs_sw1.sh
+		sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/bind/named.conf.local
+		sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/dhcp/dhcpd.conf
+		sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/network/interfaces
+		sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.consultingcommandos.us /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.$Domain2
+		sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.consultingcommandos.us /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.$Domain2
+	fi
+
+	# Cleanup duplicate search lines in /etc/resolv.conf if Orabuntu-LXC has been re-run
+	sudo sed -i '$!N; /^\(.*\)\n\1$/!P; D' /etc/resolv.conf
+
+	sudo cat /etc/resolv.conf
+
+	sleep 5
+
+	echo ''
+	echo "=============================================="
+	echo "Customize nameserver & domains complete.      "
+	echo "=============================================="
 fi
-
-if [ -n $NameServer ]
-then
-	# GLS 20151223 Settable Nameserver feature added
-	# GLS 20161022 Settable Nameserver feature moved into DNS DHCP LXC container.
-	# GLS 20162011 Settable Nameserver feature expanded to include nameserver and both domains.
-	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.orabuntu-lxc.com
-	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.orabuntu-lxc.com
-	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/fwd.consultingcommandos.us
-	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/var/lib/bind/rev.consultingcommandos.us
-	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/config
-	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/etc/hostname
-	sudo sed -i "/nsa/s/nsa/$NameServer/g" /var/lib/lxc/nsa/rootfs/etc/hosts
-	sudo sed -i "/nsa/s/nsa/$NameServer/g" /etc/network/openvswitch/strt_nsa.sh
-	sudo mv /var/lib/lxc/nsa /var/lib/lxc/$NameServer
-	sudo mv /etc/network/if-up.d/openvswitch/nsa-pub-ifup-sw1 /etc/network/if-up.d/openvswitch/$NameServer-pub-ifup-sw1
-	sudo mv /etc/network/if-down.d/openvswitch/nsa-pub-ifdown-sw1 /etc/network/if-down.d/openvswitch/$NameServer-pub-ifdown-sw1
-	sudo mv /etc/network/if-up.d/openvswitch/nsa-pub-ifup-sx1 /etc/network/if-up.d/openvswitch/$NameServer-pub-ifup-sx1
-	sudo mv /etc/network/if-down.d/openvswitch/nsa-pub-ifdown-sx1 /etc/network/if-down.d/openvswitch/$NameServer-pub-ifdown-sx1
-	sudo mv /etc/network/openvswitch/strt_nsa.sh /etc/network/openvswitch/strt_$NameServer.sh
-fi
-
-if [ -n $Domain1 ]
-then
-	# GLS 20151221 Settable Domain feature added
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.orabuntu-lxc.com
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.orabuntu-lxc.com
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/resolv.conf
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/NetworkManager/dnsmasq.d/local
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/network/openvswitch/crt_ovs_sw1.sh
-#	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /etc/network/interfaces
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/bind/named.conf.local
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/dhcp/dhcpd.conf
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/$NameServer/rootfs/etc/network/interfaces
-	sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.orabuntu-lxc.com /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.$Domain1
-	sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.orabuntu-lxc.com /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.$Domain1
-fi
-
-if [ -n $Domain2 ]
-then
-	# GLS 20151221 Settable Domain feature added
-	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.consultingcommandos.us
-	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.consultingcommandos.us
-	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/resolv.conf
-	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /etc/NetworkManager/dnsmasq.d/local
-	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /etc/network/openvswitch/crt_ovs_sw1.sh
-#	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /etc/network/interfaces
-	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/bind/named.conf.local
-	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/dhcp/dhcpd.conf
-	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/$NameServer/rootfs/etc/network/interfaces
-	sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.consultingcommandos.us /var/lib/lxc/$NameServer/rootfs/var/lib/bind/fwd.$Domain2
-	sudo mv /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.consultingcommandos.us /var/lib/lxc/$NameServer/rootfs/var/lib/bind/rev.$Domain2
-fi
-
-# Cleanup duplicate search lines in /etc/resolv.conf if Orabuntu-LXC has been re-run
-sudo sed -i '$!N; /^\(.*\)\n\1$/!P; D' /etc/resolv.conf
-
-sudo cat /etc/resolv.conf
 
 sleep 5
 
-echo ''
-echo "=============================================="
-echo "Customize nameserver & domains complete.      "
-echo "=============================================="
-
-sleep 5
-
 clear
-
-echo ''
-echo "=============================================="
-echo "Create sw1 and sx1 OpenvSwitch services...    "
-echo "=============================================="
-echo ''
 
 sudo chmod 755 /etc/network/openvswitch/*.sh
 
 SwitchList='sw1 sx1'
 for k in $SwitchList
 do
+	echo ''
+	echo "=============================================="
+	echo "Installing OpenvSwitch $k...                  "
+	echo "=============================================="
+	echo ''
+
         if [ ! -f /etc/systemd/system/$k.service ]
         then
                 	sudo sh -c "echo '[Unit]'						 > /etc/systemd/system/$k.service"
@@ -1468,37 +1595,44 @@ do
                 	sudo sh -c "echo ''							>> /etc/systemd/system/$k.service"
                 	sudo sh -c "echo '[Install]'						>> /etc/systemd/system/$k.service"
                 	sudo sh -c "echo 'WantedBy=multi-user.target'				>> /etc/systemd/system/$k.service"
-        fi
-done
-
-echo ''
-echo "=============================================="
-echo "OpenvSwitch Priv/ASM Onboot Services Created. "
-echo "=============================================="
-
-sleep 5
-
-clear
-
-for k in $SwitchList
-do
-	echo ''
-	echo "=============================================="
-	echo "Start OpenvSwitch $k ...            "
-	echo "=============================================="
-	echo ''
-
-        sudo chmod 644 /etc/systemd/system/$k.service
-	sudo systemctl daemon-reload
-        sudo systemctl enable $k.service
-	sudo service $k start
-	sudo service $k status
-
-	echo ''
-	echo "=============================================="
-	echo "OpenvSwitch $k is up.                         "
-	echo "=============================================="
+		
+			echo ''
+			echo "=============================================="
+			echo "Starting OpenvSwitch $k ...                   "
+			echo "=============================================="
+			echo ''
 	
+       			sudo chmod 644 /etc/systemd/system/$k.service
+			sudo systemctl daemon-reload
+       			sudo systemctl enable $k.service
+			sudo service $k start
+			sudo service $k status
+
+			echo ''
+			echo "=============================================="
+			echo "Started OpenvSwitch $k.                       "
+			echo "=============================================="
+
+			sleep 5
+
+			clear
+	else
+			echo ''
+			echo "=============================================="
+			echo "OpenvSwitch $k previously installed.          "
+			echo "=============================================="
+			echo ''
+		
+			sleep 5
+
+			clear
+        fi
+
+	echo ''
+	echo "=============================================="
+	echo "Installed OpenvSwitch $k.                     "
+	echo "=============================================="
+
 	sleep 5
 
 	clear
@@ -1506,17 +1640,7 @@ done
 
 echo ''
 echo "=============================================="
-echo "Openvswitch interfaces installed & configured."
-echo "=============================================="
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
 echo "Activating NetworkManager dnsmasq service ... "
-echo "This has a 60 second timeout so be patient... "
 echo "=============================================="
 echo ''
 
@@ -1532,26 +1656,26 @@ function CheckResolvReady {
 sudo cat /etc/resolv.conf | grep -c 'nameserver 127\.0\.0\.1'
 }
 ResolvReady=$(CheckResolvReady)
+echo ''
 NumResolvReadyTries=0
 while [ $ResolvReady -ne 1 ] && [ $NumResolvReadyTries -lt 60 ]
 do
 ResolvReady=$(CheckResolvReady)
 ((NumResolvReadyTries=NumResolvReadyTries+1))
 sleep 1
-echo ''
 echo 'NumResolvReadyTries = '$NumResolvReadyTries
 done
 
 if [ $ResolvReady -eq 1 ]
 then
-sudo service sw1 restart
-# sudo sh -c "echo 'search $Domain1 $Domain2' >> /etc/resolv.conf"
+	echo ''
+	sudo service sw1 restart
 else
-echo ''
-echo "=============================================="
-echo "NetworkManager didn't set nameserver 127.0.0.1"
-echo "which is the setting required for NM dnsmasq. "
-echo "=============================================="
+	echo ''
+	echo "=============================================="
+	echo "NetworkManager didn't set nameserver 127.0.0.1"
+	echo "which is the setting required for NM dnsmasq. "
+	echo "=============================================="
 fi
 
 sudo cat /etc/resolv.conf
@@ -1568,7 +1692,7 @@ clear
 echo ''
 echo "=============================================="
 echo "Setting secret in dhcpd.conf file...          "
-echo "============================================="
+echo "=============================================="
 echo ''
 
 function GetKeySecret {
@@ -1593,85 +1717,45 @@ sleep 5
 
 clear
 
-echo ''
-echo "=============================================="
-echo "Customize nameserver & domains completed.     "
-echo "=============================================="
-
-sleep 5
-
-clear
-
-echo ''
-
 # echo ''
 # echo "=============================================="
-# echo "Starting OpenvSwitch sw1 ...                  "
+# echo "Customize nameserver & domains completed.     "
 # echo "=============================================="
-
-# sudo /etc/network/openvswitch/crt_ovs_sw1.sh >/dev/null 2>&1
-# echo ''
-# sleep 3
-# ifconfig sw1
-
-# echo "=============================================="
-# echo "OpenvSwitch sw1 started.                      "
-# echo "=============================================="
-# echo ''
 
 # sleep 5
 
 # clear
 
-# echo ''
-# echo "=============================================="
-# echo "Starting OpenvSwitch sx1 ...                  "
-# echo "=============================================="
+if [ ! -f /etc/systemd/system/$NameServer.service ]
+then
+	echo ''
+	echo "=============================================="
+	echo "Create $NameServer Onboot Service...          "
+	echo "=============================================="
+	echo ''
 
-# sudo /etc/network/openvswitch/crt_ovs_sx1.sh >/dev/null 2>&1
-# echo ''
-# sleep 3
-# ifconfig sx1
+	sudo sh -c "echo '[Unit]'             	         				 > /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo 'Description=$NameServer Service'  				>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo 'Wants=network-online.target sw1.service sx1.service'		>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo 'After=network-online.target sw1.service sx1.service'		>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo ''                                 				>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo '[Service]'                        				>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo 'Type=oneshot'                     				>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo 'User=root'                        				>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo 'RemainAfterExit=yes'              				>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo 'ExecStart=/etc/network/openvswitch/strt_$NameServer.sh start'	>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo 'ExecStop=/etc/network/openvswitch/strt_$NameServer.sh stop'	>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo ''                                 				>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo '[Install]'                        				>> /etc/systemd/system/$NameServer.service"
+	sudo sh -c "echo 'WantedBy=multi-user.target'       				>> /etc/systemd/system/$NameServer.service"
+	sudo chmod 644 /etc/systemd/system/$NameServer.service
+	sudo systemctl enable $NameServer
 
-# echo "=============================================="
-# echo "OpenvSwitch sx1 started.                      "
-# echo "=============================================="
-# echo ''
-
-sleep 5
-
-clear
-
-echo ''
-echo "=============================================="
-echo "Create $NameServer Onboot Service...          "
-echo "=============================================="
-echo ''
-
-sudo sh -c "echo '[Unit]'             	         				 > /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'Description=$NameServer Service'  				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'Wants=network-online.target sw1.service sx1.service'		>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'After=network-online.target sw1.service sx1.service'		>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo ''                                 				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo '[Service]'                        				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'Type=oneshot'                     				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'User=root'                        				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'RemainAfterExit=yes'              				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'ExecStart=/etc/network/openvswitch/strt_$NameServer.sh start'	>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'ExecStop=/etc/network/openvswitch/strt_$NameServer.sh stop'	>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo ''                                 				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo '[Install]'                        				>> /etc/systemd/system/$NameServer.service"
-sudo sh -c "echo 'WantedBy=multi-user.target'       				>> /etc/systemd/system/$NameServer.service"
-sudo chmod 644 /etc/systemd/system/$NameServer.service
-sudo systemctl enable $NameServer
-
-# done
-
-echo ''
-echo "=============================================="
-echo "Created $NameServer Onboot Service.           "
-echo "=============================================="
-echo ''
+	echo ''
+	echo "=============================================="
+	echo "Created $NameServer Onboot Service.           "
+	echo "=============================================="
+fi
 
 sleep 5
 
@@ -1796,8 +1880,10 @@ echo "Verify existence of Oracle and Grid users...  "
 echo "=============================================="
 echo ''
 
-sudo useradd -u 1098 grid >/dev/null 2>&1
-sudo useradd -u 500 oracle >/dev/null 2>&1
+sudo useradd -u 1098 grid 		>/dev/null 2>&1
+sudo useradd -u 500 oracle 		>/dev/null 2>&1
+sudo groupadd -g 1100 asmadmin		>/dev/null 2>&1
+sudo usermod -a -G asmadmin grid	>/dev/null 2>&1
 
 id grid
 id oracle

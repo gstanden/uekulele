@@ -146,7 +146,7 @@ do
 	}
 	fi
 	PublicIPIterative=$(CheckPublicIPIterative)
-	echo $j | grep oel
+	echo $j | grep oel > /dev/null 2>&1
 	if [ $? -eq 0 ]
 	then
 	sudo bash -c "cat $Config|grep ipv4|cut -f2 -d'='|sed 's/^[ \t]*//;s/[ \t]*$//'|cut -f4 -d'.'|sed 's/^/\./'|xargs -I '{}' sed -i "/ipv4/s/\{}/\.1$OR/g" $Config"

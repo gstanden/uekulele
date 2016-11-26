@@ -203,6 +203,10 @@ clear
 # Otherwise if you set no parameters for create-scst-oracle.sh it will run with default settings (see notes above).
 # If you want SCST for other purposes different from running an Oracle database, you can edit the create-scst-oracle.sh manually to suit your own needs (change names. lun sizes, etc.)
 
+sleep 5
+
+clear
+
 echo ''
 echo "======================================================="
 echo "Next script:  create-scst-oracle.sh                   "
@@ -212,7 +216,11 @@ sleep 5
 
 clear
  
-./create-scst-oracle.sh com.popeye lxc1 external 5G 29G 1G
+./create-scst-oracle.sh com.popeye lxc1 external 10G 30G 30G
+
+sleep 5
+
+clear
 
 echo ''
 echo "======================================================="

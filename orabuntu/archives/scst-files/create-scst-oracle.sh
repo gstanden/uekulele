@@ -188,6 +188,10 @@ echo 'Error invalid block size'
 exit
 fi
 
+sleep 5
+
+clear
+
 echo ''
 echo "======================================================"
 echo "Display SCST Install settings...                      "
@@ -696,7 +700,7 @@ clear
 
 echo ''
 echo "============================================================================================================"
-echo "Set Portal startups.  You can change 'manual' to 'automatic' later if you want.       "
+echo "Set the manual portal startups...                                                                           "
 echo "============================================================================================================"
 echo ''
 
@@ -727,6 +731,21 @@ sudo iscsiadm -m node --logout >/dev/null 2>&1
 sudo multipath -F
 done
 
+echo ''
+echo "============================================================================================================"
+echo "Manual portal startups set.                                                                                 "
+echo "============================================================================================================"
+
+sleep 5
+
+clear
+
+echo ''
+echo "============================================================================================================"
+echo "Set the automatic portal startups... (OpenvSwitch storage networks 10.207.40.1 & 10.207.41.1) ...           "
+echo "============================================================================================================"
+echo ''
+
 echo 'OpenvSwitch portals that will be used.'
 echo ''
 echo $Portals
@@ -742,7 +761,7 @@ done
 
 echo ''
 echo "============================================================================================================"
-echo "Set the startups of all portals to manual.                                                                  "
+echo "Set the automatic portal startups.                                                                          "
 echo "============================================================================================================"
 
 sleep 5
@@ -824,9 +843,10 @@ echo ''
 sleep 5
 
 sudo sh -c "echo '#!/bin/sh'  													 	>  /etc/network/if-down.d/scst-net"
+sudo sh -c "echo '# This file is only used with orabuntu not with uekulele but is included in the distribution.'		 	>> /etc/network/if-down.d/scst-net"
 sudo sh -c "echo 'scst-net - logout of scst targets'  										 	>> /etc/network/if-down.d/scst-net"
-sudo sh -c "echo 'iscsiadm --mode node --targetname iqn.2016-11.com.popeye:ubuntu1604.san.asm.oracle   --portal 10.207.40.1 --logout'	>> /etc/network/if-down.d/scst-net"
-sudo sh -c "echo 'iscsiadm --mode node --targetname iqn.2016-11.com.popeye:ubuntu1604.san.asm.oracle   --portal 10.207.41.1 --logout'	>> /etc/network/if-down.d/scst-net"
+sudo sh -c "echo 'iscsiadm --mode node --targetname iqn.$DATEYR-$DATEMO.$DOMAIN:$HostName.san.asm.oracle --portal 10.207.40.1 --logout'	>> /etc/network/if-down.d/scst-net"
+sudo sh -c "echo 'iscsiadm --mode node --targetname iqn.$DATEYR-$DATEMO.$DOMAIN:$HostName.san.asm.oracle --portal 10.207.41.1 --logout'	>> /etc/network/if-down.d/scst-net"
 
 sudo cat /etc/network/if-down.d/scst-net
 

@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #    Copyright 2015-2017 Gilbert Standen
 #    This file is part of orabuntu-lxc.
 
@@ -21,11 +19,13 @@
 #    v3.0 GLS 20160710 Updates for Ubuntu 16.04
 #    v4.0 GLS 20161025 DNS DHCP services moved into an LXC container
 
+#!/bin/bash
+
 clear
 
 echo ''
 echo "=============================================="
-echo "uekulele-services-2.sh script                 "
+echo "uekulele-services-2.sh script                   "
 echo "                                              "
 echo "This script customizes container for oracle.  "
 echo "This script creates rsa key for host if one   "
@@ -53,9 +53,8 @@ echo "Extracting oracle-specific files to container."
 echo "=============================================="
 echo ''
 
-# sudo cp -p /var/lib/lxc/oel$OracleRelease/rootfs/etc/security/limits.conf /var/lib/lxc/oel$OracleRelease/rootfs/etc/security/limits.conf.original.uekulele.bak
-sudo tar -xvf /home/ubuntu/Downloads/uekulele-master/uekulele/archives/lxc-oracle-files.tar -C /var/lib/lxc/oel$OracleRelease --touch
-# sudo cp -p /var/lib/lxc/oel$OracleRelease/rootfs/etc/security/limits.conf.original.uekulele.bak /var/lib/lxc/oel$OracleRelease/rootfs/etc/security/limits.conf
+cd ~/Downloads/uekulele-master/uekulele/archives
+sudo tar -xvf lxc-oracle-files.tar -C /var/lib/lxc/oel$OracleRelease --touch
 
 sudo chown root:root /var/lib/lxc/oel$OracleRelease/rootfs/root/hugepages_setting.sh
 sudo chmod 755 /var/lib/lxc/oel$OracleRelease/rootfs/root/hugepages_setting.sh
@@ -70,10 +69,19 @@ sudo chmod 755 /var/lib/lxc/oel$OracleRelease/rootfs/root/create_users.sh
 sudo chown root:root /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
 sudo chmod 644 /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
 sudo sed -i "s/HOSTNAME=ContainerName/HOSTNAME=oel$OracleRelease/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/sysconfig/network
-sudo sed -i "s/HostName/oel$OracleRelease/" /var/lib/lxc/oel$OracleRelease/rootfs/etc/sysconfig/network-scripts/ifcfg-eth0
-sudo sed -i "s/HostName/oel$OracleRelease/" /var/lib/lxc/oel$OracleRelease/rootfs/etc/sysconfig/network-scripts/ifcfg-eth1
-sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/NetworkManager/dnsmasq.d/local
-sudo rm /var/lib/lxc/oel$OracleRelease/rootfs/etc/sysconfig/network-scripts/ifcfg-eth1
+sudo rm /var/lib/lxc/oel$OracleRelease/rootfs/etc/ntp.conf
+
+if [ -n $Domain1 ]
+then
+        sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/NetworkManager/dnsmasq.d/local
+	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
+fi
+
+if [ -n $Domain2 ]
+then
+        sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/NetworkManager/dnsmasq.d/local
+	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
+fi
 
 echo ''
 echo "=============================================="
@@ -159,7 +167,7 @@ echo ''
 fi
 
 function CheckAuthorizedKeys {
-sudo grep -c "$AuthorizedKey" ~/.ssh/authorized_keys
+grep -c "$AuthorizedKey" ~/.ssh/authorized_keys
 }
 AuthorizedKeys=$(CheckAuthorizedKeys)
 
@@ -209,7 +217,7 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Ping test google.com...                   "
+echo "Ping test  google.com...                   "
 echo "=============================================="
 echo ''
 
@@ -248,28 +256,33 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Configure container DNS resolution...         "
+echo "Create LXC NTP service file...                "
 echo "=============================================="
 echo ''
 
-if [ ! -f /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf ]
-then
-	sudo touch /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
-fi
+Wants=ntpd.service
+Before=ntpd.service
 
-if [ -n $Domain1 ]
-then
-	sudo sed -i "/orabuntu-lxc\.com/s/orabuntu-lxc\.com/$Domain1/g"             /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
-fi
+sudo sh -c "echo '[Unit]'             	         		 		>  /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'Description=ntp Service'					>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'Wants=ntpd.service'						>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'Before=ntpd.service'						>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo ''								>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo '[Service]'							>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'Type=oneshot'							>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'User=root'							>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'RemainAfterExit=yes'						>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'ExecStart=/usr/sbin/ntpd -x'					>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'ExecStop=/bin/bash /usr/sbin/service /usr/sbin/ntpd stop'	>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo ''								>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo '[Install]'							>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
+sudo sh -c "echo 'WantedBy=multi-user.target'					>> /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service"
 
-if [ -n $Domain2 ]
-then
-	sudo sed -i "/consultingcommandos\.us/s/consultingcommandos\.us/$Domain2/g" /var/lib/lxc/oel$OracleRelease/rootfs/etc/dhcp/dhclient.conf
-fi
+sudo cat /var/lib/lxc/oel$OracleRelease/rootfs/etc/systemd/system/ntp.service
 
 echo ''
 echo "=============================================="
-echo "Container DNS resolution configured.          "
+echo "Created LXC NTP service file.                 "
 echo "=============================================="
 echo ''
 
@@ -282,7 +295,7 @@ echo "=============================================="
 echo "Initialize LXC Seed Container on OpenvSwitch.."
 echo "=============================================="
 
-sudo cd /etc/network/if-up.d/openvswitch
+cd /etc/network/if-up.d/openvswitch
 sudo sed -i "s/ContainerName/oel$OracleRelease/g" /var/lib/lxc/oel$OracleRelease/config
 
 function CheckContainerUp {
@@ -331,9 +344,7 @@ then
         	if [ $RedHatVersion = 7 ]
         	then
         	function CheckPublicIPIterative {
-#        	sudo lxc-ls -f | sed 's/  */ /g' | grep $j | grep RUNNING | cut -f3 -d' ' | sed 's/,//' | cut -f1-2 -d'.' | sed 's/\.//g'
 		sudo lxc-ls -f | sed 's/  */ /g' | grep $j | grep RUNNING | cut -f2 -d'-' | sed 's/^[ \t]*//;s/[ \t]*$//' | cut -f1 -d' ' | cut -f1-2 -d'.' | sed 's/\.//g'
-#       	sudo lxc-ls -f | sed 's/  */ /g' | grep $j | grep RUNNING | cut -f5 -d' ' | sed 's/,//' | cut -f1-2 -d'.' | sed 's/\.//g'
         	}
         	fi
 		PublicIPIterative=$(CheckPublicIPIterative)
@@ -358,6 +369,7 @@ then
 		i=$((i+1))
 		done
 	done
+	
 	echo "=============================================="
 	echo "LXC Seed Container for Oracle started.        "
 	echo "=============================================="
@@ -431,16 +443,14 @@ if [ $? -ne 0 ]
 then
 echo ''
 echo "=============================================="
-echo "No-password ssh to oel$OracleRelease has issue(s).      "
-echo "No-password ssh to oel$OracleRelease must succeed.      "
-echo "Fix issues retry script.                      "
+echo "lxc-attach is failing...see if selinux is set."
 echo "Script exiting.                               "
 echo "=============================================="
 exit
 fi
 echo ''
 echo "=============================================="
-echo "No-password ssh test to oel$OracleRelease successful.   "
+echo "Test lxc-attach oel$OracleRelease successful. "
 echo "=============================================="
 
 sleep 5
@@ -449,7 +459,7 @@ clear
 
 echo ''
 echo "==============================================" 
-echo "Next script to run: uekulele-services-3.sh      "
+echo "Next script to run: uekulele-services-3.sh    "
 echo "=============================================="
 
 sleep 5

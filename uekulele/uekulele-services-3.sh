@@ -25,7 +25,7 @@ clear
 
 echo ''
 echo "=============================================="
-echo "Script:  uekulele-services-3.sh               "
+echo "Script:  uekulele-services-3.sh                 "
 echo "                                              "
 echo "This script installs packages into the Oracle "
 echo "Linux container required for running Oracle.  "
@@ -87,10 +87,10 @@ echo "=============================================="
 echo "Initialize LXC Seed Container on OpenvSwitch.."
 echo "=============================================="
 
-sudo cd /etc/network/if-up.d/openvswitch
+cd /etc/network/if-up.d/openvswitch
 
 # GLS 20151222 I don't think this step does anything anymore.  Commenting for now, removal pending.
-#sed -i "s/lxcora01/oel$OracleRelease/" /var/lib/lxc/oel$OracleRelease/config
+# sudo sed -i "s/lxcora01/oel$OracleRelease/" /var/lib/lxc/oel$OracleRelease/config
 
 function CheckContainerUp {
 sudo lxc-ls -f | grep oel$OracleRelease | sed 's/  */ /g' | egrep 'RUNNING|STOPPED'  | cut -f2 -d' '
@@ -128,9 +128,7 @@ then
                 if [ $RedHatVersion = 7 ]
                 then
                 function CheckPublicIPIterative {
-#               sudo lxc-ls -f | sed 's/  */ /g' | grep $j | grep RUNNING | cut -f3 -d' ' | sed 's/,//' | cut -f1-2 -d'.' | sed 's/\.//g'
 		sudo lxc-ls -f | sed 's/  */ /g' | grep $j | grep RUNNING | cut -f2 -d'-' | sed 's/^[ \t]*//;s/[ \t]*$//' | cut -f1 -d' ' | cut -f1-2 -d'.' | sed 's/\.//g'
-#               sudo lxc-ls -f | sed 's/  */ /g' | grep $j | grep RUNNING | cut -f5 -d' ' | sed 's/,//' | cut -f1-2 -d'.' | sed 's/\.//g'
                 }
                 fi
 		PublicIPIterative=$(CheckPublicIPIterative)
@@ -200,18 +198,18 @@ done
 
 if [ "$NetworkUp" != '0%packetloss' ]
 then
-	echo ''
-	echo "=============================================="
-	echo "Container oel$OracleRelease not pingable.     "
-	echo "Script exiting.                               "
-	echo "=============================================="
-	exit
+echo ''
+echo "=============================================="
+echo "Container oel$OracleRelease not pingable.     "
+echo "Script exiting.                               "
+echo "=============================================="
+exit
 else
-	echo ''
-	echo "=============================================="
-	echo "Container oel$OracleRelease is pingable.      "
-	echo "=============================================="
-	echo ''
+echo ''
+echo "=============================================="
+echo "Container oel$OracleRelease is pingable.      "
+echo "=============================================="
+echo ''
 fi
 
 sleep 5
@@ -229,16 +227,15 @@ echo ''
 sudo lxc-attach -n oel$OracleRelease -- uname -a
 if [ $? -ne 0 ]
 then
-	echo ''
-	echo "=============================================="
-	echo "No-password oel$OracleRelease ssh has issue. "
-	echo "No-password oel$OracleRelease must succeed.   "
-	echo "Fix issues retry script.                      "
-	echo "Script exiting.                               "
-	echo "=============================================="
-	exit
+echo ''
+echo "=============================================="
+echo "No-password oel$OracleRelease ssh has issue. "
+echo "No-password oel$OracleRelease must succeed.   "
+echo "Fix issues retry script.                      "
+echo "Script exiting.                               "
+echo "=============================================="
+exit
 fi
-
 echo ''
 echo "=============================================="
 echo "No-password oel$OracleRelease ssh successful. "
@@ -259,7 +256,6 @@ sudo mkdir -p /home/grid/grid/rpm
 sudo lxc-attach -n oel$OracleRelease -- /root/packages.sh
 sudo lxc-attach -n oel$OracleRelease -- /root/create_users.sh
 sudo lxc-attach -n oel$OracleRelease -- /root/lxc-services.sh
-sudo lxc-attach -n oel$OracleRelease -- yum -y install net-tools bind-utils
 sudo lxc-attach -n oel$OracleRelease -- rpm -Uvh /home/grid/grid/rpm/cvuqdisk-1.0.9-1.rpm
 sudo lxc-attach -n oel$OracleRelease -- usermod --password `perl -e "print crypt('grid','grid');"` grid
 sudo lxc-attach -n oel$OracleRelease -- usermod --password `perl -e "print crypt('oracle','oracle');"` oracle
@@ -276,12 +272,44 @@ sudo lxc-attach -n oel$OracleRelease -- chown grid:oinstall /home/grid/.bashrc
 sudo lxc-attach -n oel$OracleRelease -- chown grid:oinstall /home/grid/.kshrc
 sudo lxc-attach -n oel$OracleRelease -- chown grid:oinstall /home/grid/.bash_logout
 sudo lxc-attach -n oel$OracleRelease -- chown grid:oinstall /home/grid/.
+sudo lxc-attach -n oel$OracleRelease -- yum -y install net-tools bind-utils ntp
 
 echo ''  
 echo "=============================================="
 echo "oel$OracleRelease configured for Oracle.      "
 echo "=============================================="
 echo ''
+
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
+echo "Enabling LXC NTP service...                   "
+echo "=============================================="
+echo ''
+
+sudo lxc-attach -n oel$OracleRelease -- chmod +x /etc/systemd/system/ntp.service
+sudo lxc-attach -n oel$OracleRelease -- systemctl enable ntp.service
+echo ''
+sudo lxc-attach -n oel$OracleRelease -- service ntp start
+echo ''
+sudo lxc-attach -n oel$OracleRelease -- service ntpd start
+echo ''
+sudo lxc-attach -n oel$OracleRelease -- service ntp status
+echo ''
+sudo lxc-attach -n oel$OracleRelease -- chkconfig ntp on
+sudo lxc-attach -n oel$OracleRelease -- chkconfig ntpd on
+
+sleep 5
+
+clear
+
+echo ''
+echo "=============================================="
+echo "Enabled LXC NTP service.                      "
+echo "=============================================="
 
 sleep 5
 

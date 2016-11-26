@@ -147,7 +147,7 @@ echo "=============================================="
 echo "Linux Flavor.                                 "
 echo "=============================================="
 echo ''
-echo $LinuxFlavor
+echo $LinuxFlavor'Hat'
 echo ''
 echo "=============================================="
 echo "Linux Flavor.                                 "
@@ -223,13 +223,6 @@ then
 			echo "=============================================="
 			echo "Script:  anylinux-services-1.sh               "
 			echo "=============================================="
-			echo "                                              "
-			echo "Tested with Oracle Linux 7 UEK4               "
-			echo "                                              "
-			echo "=============================================="
-			echo "Script:  anylinux-services-1.sh               "
-			echo "=============================================="
-			echo ''
 
 			sleep 5
 			
@@ -237,32 +230,113 @@ then
 			
 			echo ''
 			echo "=============================================="
-			echo "Oracle Linux Release Version Check....        "
+			echo "Linux OS version check...                     "
 			echo "=============================================="
 			echo ''
-
-			cat /etc/oracle-release
+  
+			if [ -f /etc/oracle-release ]
+			then
+				cat /etc/oracle-release
+			else
+				cat /etc/redhat-release
+			fi
 
 			echo ''
 			echo "=============================================="
-			echo "RedHat Release Version Check complete.        "
+			echo "Linux OS version displayed.                   "
 			echo "=============================================="
-
-			sleep 5
-
-			clear
-		else
+			echo ''	
+			echo "=============================================="
+			echo "OS Versions Compabtibility Notice Begin       "
+			echo "=============================================="
 			echo ''
 			echo "=============================================="
-			echo "Oracle Version not tested with Uekulele.      "
-			echo "Results may be unpredictable.                 " 
-			echo "Proceeding anyway...<ctrl>+c to exit          "
+			echo "All OS version compabibility tests shown below"
+			echo "done on NEW FRESH INSTALL physical or VM hosts"
+			echo "AFTER ALL UPDATES applied.                    "
+			echo "=============================================="
+			echo ''
+			echo "=============================================="
+			echo "                                              "
+			echo "Tested with Oracle Linux 7 UEK4 (VM)          "
+			echo "Tested with Ubuntu Linux  16.04 (VM)          "
+			echo "                                              "
+			echo "=============================================="
+			echo ''
+			echo "=============================================="
+			echo "OS Versions Compatibility Notice End          "
 			echo "=============================================="
 		
+			echo ''	
+			read -n 1 -s -p "Press any key to continue"
+
+			clear
+
+			echo ''
+			echo "=========================================================================================="
+			echo "Please answer 'Y' below to signify that you understand that the above fresh install       "
+			echo "OS/physical and OS/VM combination(s) are the only combinations that have been tested with "
+			echo "this software.                                                                            "
+			echo "                                                                                          "
+			echo "By answering 'Y' you also understand that while every effort has been made to certify this"
+			echo "software on the OS/VM and OS/physical combos above, the above-listed combos do not        "
+			echo "constitute a guarantee of results YMMV.                                                   "
+			echo "                                                                                          "
+			echo "It is recommended to first create a fresh VM of one of the supported versions listed above"
+			echo "and test out this software on the VM before doing an install on a baremetal host.  This is"
+			echo "so that you can get experience with this software first on a VM.  The installation of this"
+			echo "software takes about 15-20  minutes so such a VM test is fairly low-cost in terms of time "
+			echo "and effort on your part (of course building the VM takes a little while too).             "
+			echo "                                                                                          "
+			echo "You can choose to answer 'Y' below also if you wish to try this software on an OS/VM or   "
+			echo "OS/physical combination that is not listed above understanding that there may be results  "
+			echo "that are unexpected in that case.                                                         "
+			echo "                                                                                          "
+			echo "Note that this software was designed to be as minimally invasive as possible and so every "
+			echo "effort has been made to minimize the risk of loss of service(s) due to installing this    "
+			echo "software.  However not all outcomes on all systems can be anticipated if installing on a  "
+			echo "system that has been running for awhile and has been customized or if installing on an OS "
+			echo "not listed above.                                                                         "
+			echo "                                                                                          "
+			echo "If you have a Linux OS that you would like to add to the list of tested systems above, you"
+			echo "are free to fork this software under the GNU3 license which governs this open source      "
+			echo "software, or you can send an email to:                                                    "
+			echo "                                                                                          " 
+			echo "gilstanden@hotmail.com                                                                    "
+			echo "                                                                                          "
+			echo "and request that support for that OS be developed into this software and also supported.  "
+			echo "=========================================================================================="	
+			echo "                                                                                          "
+			echo "=========================================================================================="	
+			echo "                                                                                          " 
+			read -e -p "Accept installation terms? [Y/N]        " -i "Y" InstallationTerms
+			echo "                                                                                          "
+			echo "=========================================================================================="
+			echo ''
+
 			sleep 5
 
 			clear
+
+			if [ $InstallationTerms = 'y' ] || [ $InstallationTerms = 'Y' ]
+			then
+				echo ''
+				echo "=============================================="	
+				echo "Terms Accepted. Proceeding with Installation. "
+				echo "=============================================="	
+			else
+				echo ''
+				echo "=============================================="	
+				echo "Terms Not Accepted. Terminating Installation. "
+				echo "=============================================="	
+				exit
+			fi
 		fi
+
+		sleep 5
+
+		clear
+
 		function CheckUser {
 		id | cut -f1 -d' ' | cut -f2 -d'(' | cut -f1 -d')'
 		}
@@ -286,6 +360,16 @@ then
 	echo ''
 	echo "=============================================="
 	echo "Check if host is physical or virtual...       "
+	echo "=============================================="
+	echo ''
+
+	sleep 5
+
+	clear
+
+	echo ''
+	echo "=============================================="
+	echo "Facter package required for phys/VM check...  "
 	echo "=============================================="
 	echo ''
 
@@ -322,6 +406,8 @@ then
         	echo "=============================================="
         	echo ''
 
+		sleep 5
+
 		mkdir -p /home/ubuntu/Downloads/uekulele-master/uekulele/facter
 		cd /home/ubuntu/Downloads/uekulele-master/uekulele/facter
 		curl -s http://downloads.puppetlabs.com/facter/facter-2.4.4.tar.gz | sudo tar xz; sudo ruby facter*/install.rb
@@ -356,10 +442,12 @@ then
 
 			sleep 5
 
+			clear
+
 			~/Downloads/uekulele-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
 			~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
 			~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
-			~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
+			~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease $NameServer
 			~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
 
  			echo ''
@@ -368,6 +456,7 @@ then
 			echo "=============================================="
 
 			sleep 5
+
  		else 
 			echo ''
 			echo "==============================================    "
@@ -382,7 +471,7 @@ then
 			~/Downloads/uekulele-master/uekulele/uekulele-services-1.sh $MajorRelease $PointRelease $Domain1 $Domain2 $NameServer $LinuxOSMemoryReservation
 			~/Downloads/uekulele-master/uekulele/uekulele-services-2.sh $MajorRelease $PointRelease $Domain1 $Domain2
 			~/Downloads/uekulele-master/uekulele/uekulele-services-3.sh $MajorRelease $PointRelease
-			~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease
+			~/Downloads/uekulele-master/uekulele/uekulele-services-4.sh $MajorRelease $PointRelease $NumCon ora$MajorRelease$PointRelease $NameServer
 			~/Downloads/uekulele-master/uekulele/uekulele-services-5.sh $MajorRelease $PointRelease 
 
 			echo ''

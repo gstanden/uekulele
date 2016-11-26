@@ -46,7 +46,6 @@ then
 	echo "===================================================="
 	echo "Create multipath.conf for $LinuxFlavor Linux...     "
 	echo "===================================================="
-	echo ''
 
 	sleep 5
 
@@ -60,6 +59,12 @@ then
 	sudo ls /dev/sd* | sed 's/$/ /' | tr -d '\n'
 	}
 	DevNode=$(GetDevNode)
+
+	if [ -f /etc/udev/rules.d/99-oracle.rules ]
+	then
+		sudo mv /etc/udev/rules.d/99-oracle.rules /etc/udev/rules.d/99-oracle.rules.pre-orabuntu.bak 
+	fi
+
 	for k in $DevNode
 	do
 		function GetVendor {
@@ -139,7 +144,7 @@ then
 		for j in $DevNode
 		do
 			function GetModelName {
-			sudo udevadm info -a -p  $(udevadm info -q path -n $j) | egrep 'ATTRS{model}' | sed 's/  *//g' | rev | cut -f1 -d'=' | sed 's/"//g' | rev | sed 's/^[ \t]*//;s/[ \t]*$//' | grep $i 
+		sudo udevadm info -a -p  $(udevadm info -q path -n $j) | egrep 'ATTRS{model}' | sed 's/  *//g' | rev | cut -f1 -d'=' | sed 's/"//g' | rev | sed 's/^[ \t]*//;s/[ \t]*$//' | grep $i 
 			}
 			function CheckEntryExist {
 			cat multipath.conf | grep $i
@@ -151,11 +156,13 @@ then
 				function Getwwid {
 				sudo /lib/udev/scsi_id -g -u -d $j
 				}
-				wwid=$(Getwwid)
-				echo "     multipath {" >> multipath.conf
-				echo "         wwid $wwid" >> multipath.conf
-				echo "         alias $i" >> multipath.conf
-				echo "     }" >> multipath.conf
+			wwid=$(Getwwid)
+			echo "     multipath {" >> multipath.conf
+			echo "         wwid $wwid" >> multipath.conf
+			echo "         alias $i" >> multipath.conf
+			echo "     }" >> multipath.conf
+			sudo sh -c "echo 'ENV{DM_UUID}==\"mpath-$wwid\", SYMLINK+=\"asm/$i\", OWNER:=\"grid\", GROUP:=\"asmadmin\", MODE:=\"660\"' >> /etc/udev/rules.d/99-oracle.rules"
+			sleep 5
 			fi
 		done
 	done
@@ -182,7 +189,6 @@ then
 
 	cat multipath.conf
 
-	echo ''
 	echo "===================================================="
 	echo "File multipath.conf created for $LinuxFlavor Linux  "
 	echo "===================================================="
@@ -424,27 +430,6 @@ then
 	echo "===================================================="
 
 	sleep 5
-
-#	echo "Review file multipath.conf for validity, then backup existing /etc/multipath.conf and copy this multipath.conf to /etc/multipath.conf file."
-#	echo "Then run the following commands to check if the user friendly multipath alias names are now in use in /dev/mapper"
-#	echo ''
-#	echo "ls -l /dev/mapper"
-#	echo "cp multipath.conf /etc/multipath.conf"
-#	echo "service multipathd stop"
-#	echo "multipath -F"
-#	echo "service multipathd start"
-#	echo "ls -l /dev/mapper"
-#	echo ''
-#	echo "if you get lines like the following after the 'multipath -F' command, edit the /etc/multipath.conf file and comment out the #revision line and the #getuid_callout line"
-#	echo "These are non-fatal errors and can also just be ignored."
-#	echo "[root@centos-72 ~]# multipath -F"
-#	echo "Sep 25 14:34:07 | DM multipath kernel driver not loaded"
-#	echo "Sep 25 14:34:07 | /etc/multipath.conf line 8, invalid keyword: revision"
-#	echo "Sep 25 14:34:07 | /etc/multipath.conf line 20, invalid keyword: getuid_callout"
-#	echo "Sep 25 14:34:07 | DM multipath kernel driver not loaded"
-
-#	Uncomment the remaining lines if you want to install the new multipath.conf file automatically.
-#	Uncomment the remaining lines if you want to install the new multipath.conf file automatically.
 
 	clear
 	

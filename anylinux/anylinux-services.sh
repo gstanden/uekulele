@@ -47,6 +47,15 @@ clear
 if [ ! -f /etc/orabuntu-lxc-release ] || [ ! -f /etc/uekulele-release ]
 then
 	echo ''
+	echo "=============================================="
+	echo "Script:  anylinux-services.sh                 "
+	echo "=============================================="
+
+	sleep 5
+
+	clear
+
+	echo ''
 	echo '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
 	echo '"We have just folded space from Ix. Many machines on Ix. New machines. Better than those on Richesse."'
 	echo '                                                                                                      '
@@ -54,7 +63,7 @@ then
 	echo '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
 	echo ''
 
-	sleep 5
+	sleep 8
 
 	clear
 
@@ -84,10 +93,12 @@ then
 	echo ''
 	echo "Acknowledgements"
 	echo ''
-	echo "1.  Mary Standen (mother)"
-	echo "2.  Yelena Belyaeva-Standen (spouse)"
+	echo "1.  Mary Standen		(mother) (1934-2016)"
+	echo "2.  Yelena Belyaeva-Standen 	(spouse)"
+	echo "3.  Allen the Cat 		(cat)"
 	echo ''
 	echo "For their patience and support during the long hours worked in the past and the long hours to be worked in the future for Orabuntu-LXC."
+	echo "Mary Standen my mother always raised me to put mission first and work first."
 	echo ''
 	echo "=============================================="
 	echo "References and Acknowledgements End           "
@@ -108,14 +119,14 @@ echo ''
 MajorRelease=$1
 if [ -z $1 ]
 then
-MajorRelease=7
+MajorRelease=6
 fi
 echo 'Oracle Linux MajorRelease = '$MajorRelease
 
 PointRelease=$2
 if [ -z $2 ]
 then
-PointRelease=3
+PointRelease=7
 fi
 echo 'Oracle Linux PointRelease = '$PointRelease
 

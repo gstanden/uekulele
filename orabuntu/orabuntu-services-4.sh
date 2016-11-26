@@ -200,7 +200,7 @@ do
 
 	sudo sh -c "echo '#!/bin/bash'						>  /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
 	sudo sh -c "echo '# Start lxc container after required networks are up'	>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
-	sudo sh -c "echo 'switches='sw1''					>> /etc/network/openvswitch/strt_ora73c10.sh"
+	sudo sh -c "echo 'switches='sw1''					>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
 	sudo sh -c "echo 'm=0'							>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
 	sudo sh -c "echo 'for i in \$switches'					>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
 	sudo sh -c "echo 'do'							>> /etc/network/openvswitch/strt_$ContainerPrefix$i.sh"
