@@ -1,5 +1,7 @@
 # Orabuntu-LXC
 
+Uekulele has been incorporated into the Orabuntu-LXC github and all development of uekuelele code continues there in the Orabuntu-LXC github.
+
 Any Oracle on Any Linux at bare-metal resource utilization with density and elasticity 10X+ hypervisor-based systems.
 
 Orabuntu-LXC is for running any Oracle Enteprise software directly on an Ubuntu 15.x or 16.x desktop (linux 3.x or 4.x kernel, respectively) using Oracle Linux LXC containers.  "Oracle Linux" is Oracle Corporations own free flavor of Linux and is ideally suited to running Oracle enterprise software.  The solution method of running Oracle Linux containers on Ubuntu Linux should generally work on any flavor of Linux, so devs are invited to port orabuntu-lxc over to other Linux distros, such as for example, Gentoo Linux.  
