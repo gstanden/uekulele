@@ -1,6 +1,6 @@
 # Orabuntu-LXC
 
-Uekulele has been incorporated into the Orabuntu-LXC github and all development of uekuelele code continues there in the Orabuntu-LXC github.
+Uekulele has been incorporated into the Orabuntu-LXC github and all development of uekuelele code continues in Orabuntu-LXC github.
 
 Any Oracle on Any Linux at bare-metal resource utilization with density and elasticity 10X+ hypervisor-based systems.
 
